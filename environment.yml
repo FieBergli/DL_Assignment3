@@ -1,0 +1,9 @@
+name: Deep_learning
+channels:
+  - defaults
+dependencies:
+  - python=3.12
+  - numpy
+  - pandas
+  - pytorch
+prefix: /opt/anaconda3/envs/Deep_learning
