@@ -99,5 +99,5 @@ class MultiHeadSelfAttentionClassifier(BaselineClassifier):
         out = attended[:, 0, :]                       # (B, E)
 
         # 7) Classification layer from BaselineClassifier
-        logits = self.fc(out)                         # (B, num_classes)
-        return logits
+        output = self.fc(out)                         # (B, num_classes)
+        return output

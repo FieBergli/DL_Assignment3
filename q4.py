@@ -4,6 +4,7 @@ import torch.nn as nn
 import torch
 import torch.nn.functional as F
 import itertools
+import math
 from data import load_imdb, load_imdb_synth, load_xor
 
 
@@ -55,8 +56,8 @@ class BaselineClassifier(nn.Module):
 
 class SimpleSelfAttentionClassifier(BaselineClassifier):
     """Baseline with one simple self-attention layer (single head, no q/k/v projections)"""
-    def __init__(self, vocab_size, emb=300, num_classes=2, pool='max'):
-        super().__init__(vocab_size, emb, num_classes, pool)
+    def _init_(self, vocab_size, emb=300, num_classes=2, pool='max'):
+        super()._init_(vocab_size, emb, num_classes, pool)
         # no extra parameters for simple attention; we just do operations in forward
 
     def forward(self, x: torch.LongTensor) -> torch.Tensor:
@@ -79,6 +80,24 @@ class SimpleSelfAttentionClassifier(BaselineClassifier):
         out, _ = attended.max(dim=1) # (B, E)
         output = self.fc(out) # (B, num_classes)
         return output
+    
+class MultiHeadSelfAttentionClassifier(BaselineClassifier):
+    def __init__(self, vocab_size, emb=300, num_classes=2, num_heads=6, pool='first'):
+        super().__init__(vocab_size, emb, num_classes, pool)
+        assert emb % num_heads == 0, "emb must be divisible by num_heads"
+
+        self.emb = emb
+        self.num_heads = num_heads
+        self.head_dim = emb // num_heads
+
+        # projections: still (E → E)
+        self.to_q = nn.Linear(emb, emb)
+        self.to_k = nn.Linear(emb, emb)
+        self.to_v = nn.Linear(emb, emb)
+
+        # final linear layer after concatenating heads
+        self.out_proj = nn.Linear(emb, emb)
+
     
 # --- Training and evaluation helpers ---
 MAX_LEN = 256
