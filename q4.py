@@ -87,9 +87,6 @@ def iterate_batches(dataset, batch_size, pad_idx, shuffle=True):
     """
     x_data, y_data = dataset
     indices = list(range(len(x_data)))
-    if shuffle:
-        import random
-        random.shuffle(indices)
 
     batches = []
     for start in range(0, len(indices), batch_size):
