@@ -19,7 +19,7 @@ class MultiHeadSelfAttentionClassifier(BaselineClassifier):
     5. Select pooling (first token) + final classification layer
     """
 
-    def __init__(self, vocab_size, emb=300, num_classes=2, num_heads=6, max_len=512):
+    def __init__(self, vocab_size, emb=300, num_classes=2, num_heads=6, max_len=256):
         # We keep pool='first' for conceptual consistency, but
         # we’ll do the pooling manually in forward().
         super().__init__(vocab_size=vocab_size, emb_dim=emb, num_classes=num_classes, pool='first')
