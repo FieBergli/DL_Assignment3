@@ -61,17 +61,17 @@ class SimpleSelfAttentionClassifier(BaselineClassifier):
 
         # compute raw attention logits: (B, T, E) @ (B, E, T) -> (B, T, T)
         # We use torch.matmul which broadcasts batch dims properly.
-        attn_logits = torch.matmul(x_emb, x_emb.transpose(1, 2)) # (B, T, T)
+        attention_output = torch.matmul(x_emb, x_emb.transpose(1, 2)) # (B, T, T)
 
         # optional: we might want to mask padding positions here if we have them
 
         # attention distribution over time dimension (softmax over last dim)
-        attn_weights = F.softmax(attn_logits, dim=-1) # (B, T, T)
+        attention_weights = F.softmax(attention_output, dim=-1) # (B, T, T)
 
         # weighted sum over values (here values == x_emb): (B, T, T) @ (B, T, E) -> (B, T, E)
-        attended = torch.matmul(attn_weights, x_emb) # (B, T, E)
+        attended = torch.matmul(attention_weights, x_emb) # (B, T, E)
 
         # now global max pooling over time
         out, _ = attended.max(dim=1) # (B, E)
-        logits = self.fc(out) # (B, num_classes)
-        return logits
+        output = self.fc(out) # (B, num_classes)
+        return output
