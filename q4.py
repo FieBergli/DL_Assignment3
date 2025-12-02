@@ -146,8 +146,8 @@ def evaluate(model, val_data, batch_size, pad_idx):
     return avg_loss, acc
 
 # --- Grid search for SimpleSelfAttentionClassifier ---
-def grid_search_attention(train_data, val_data, vocab_size, num_classes, pad_idx):
-    lrs = [1e-3, 5e-3]
+def grid_search_attention(train_data, val_data, vocab_size, num_classes, pad_idx, num_epochs=20):
+    lrs = [1e-3, 5e-3, 1e-4]
     batch_sizes = [32, 64, 128]
     results = []
 
@@ -156,7 +156,7 @@ def grid_search_attention(train_data, val_data, vocab_size, num_classes, pad_idx
         model = SimpleSelfAttentionClassifier(vocab_size=vocab_size, num_classes=num_classes, pool='max')
         optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
-        train_loss, train_acc = train_epochs(model, train_data, batch_size, pad_idx, optimizer, num_epochs=20)
+        train_loss, train_acc = train_epochs(model, train_data, batch_size, pad_idx, optimizer, num_epochs=num_epochs)
         val_loss, val_acc = evaluate(model, val_data, batch_size, pad_idx)
 
         print(f'lr={lr}, batch={batch_size} | train_acc={train_acc:.3f}, val_acc={val_acc:.3f}')
@@ -186,14 +186,17 @@ pad_idx3 = w2i_3['.pad']
 results1 = grid_search_attention(train_data1, val_data1,
                                  vocab_size=len(i2w_1),
                                  num_classes=numcls_1,
-                                 pad_idx=pad_idx1)
+                                 pad_idx=pad_idx1,
+                                 num_epochs=20)
 
 results2 = grid_search_attention(train_data2, val_data2,
                                  vocab_size=len(i2w_2),
                                  num_classes=numcls_2,
-                                 pad_idx=pad_idx2)
+                                 pad_idx=pad_idx2,
+                                 num_epochs=100)
 
 results3 = grid_search_attention(train_data3, val_data3,
                                  vocab_size=len(i2w_3),
                                  num_classes=numcls_3,
-                                 pad_idx=pad_idx3)
+                                 pad_idx=pad_idx3,
+                                 num_epochs=100)
