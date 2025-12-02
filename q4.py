@@ -1,6 +1,9 @@
 from q1 import pad_batch
 import torch
 import torch.nn as nn
+import torch
+import torch.nn.functional as F
+import itertools
 
 
 class BaselineClassifier(nn.Module):
@@ -75,3 +78,86 @@ class SimpleSelfAttentionClassifier(BaselineClassifier):
         out, _ = attended.max(dim=1) # (B, E)
         output = self.fc(out) # (B, num_classes)
         return output
+    
+# --- Training and evaluation helpers ---
+def iterate_batches(dataset, batch_size, pad_idx, shuffle=True):
+    """
+    dataset: (x_list, y_list)
+    returns a list of (x_batch, y_batch) tuples
+    """
+    x_data, y_data = dataset
+    indices = list(range(len(x_data)))
+    if shuffle:
+        import random
+        random.shuffle(indices)
+
+    batches = []
+    for start in range(0, len(indices), batch_size):
+        batch_idx = indices[start:start + batch_size]
+        x_seqs = [x_data[j] for j in batch_idx]
+        y_labels = [y_data[j] for j in batch_idx]
+
+        x = pad_batch(x_seqs, pad_idx)              # (B, T)
+        y = torch.tensor(y_labels, dtype=torch.long)  # (B,)
+        batches.append((x, y))
+    return batches
+
+def train_epochs(model, train_data, batch_size, pad_idx, optimizer, num_epochs=5):
+    for epoch in range(1, num_epochs + 1):
+        total_loss, total_correct, total_examples = 0.0, 0, 0
+        print(f"\nEpoch {epoch}/{num_epochs}")
+
+        for x, y in iterate_batches(train_data, batch_size, pad_idx, shuffle=True):
+            optimizer.zero_grad()
+            output = model(x)
+            loss = F.cross_entropy(output, y)
+            loss.backward()
+            optimizer.step()
+
+            # stats
+            batch_size_actual = x.size(0)
+            total_loss += loss.item() * batch_size_actual
+            preds = output.argmax(dim=1)
+            total_correct += (preds == y).sum().item()
+            total_examples += batch_size_actual
+
+        avg_loss = total_loss / total_examples
+        acc = total_correct / total_examples
+        print(f"Training loss: {avg_loss:.4f}  |  accuracy: {acc:.4f}")
+
+    return avg_loss, acc
+
+def evaluate(model, val_data, batch_size, pad_idx):
+    total_loss, total_correct, total_examples = 0.0, 0, 0
+    with torch.no_grad():
+        for x, y in iterate_batches(val_data, batch_size, pad_idx, shuffle=False):
+            output = model(x)
+            loss = F.cross_entropy(output, y)
+            batch_size_actual = x.size(0)
+            total_loss += loss.item() * batch_size_actual
+            preds = output.argmax(dim=1)
+            total_correct += (preds == y).sum().item()
+            total_examples += batch_size_actual
+
+    avg_loss = total_loss / total_examples
+    acc = total_correct / total_examples
+    return avg_loss, acc
+
+# --- Grid search for SimpleSelfAttentionClassifier ---
+def grid_search_attention(train_data, val_data, vocab_size, num_classes, pad_idx):
+    lrs = [1e-3, 5e-3]
+    batch_sizes = [32, 64, 128]
+    results = []
+
+    for lr, batch_size in itertools.product(lrs, batch_sizes):
+        print(f"\n=== Training with lr={lr}, batch={batch_size} ===")
+        model = SimpleSelfAttentionClassifier(vocab_size=vocab_size, num_classes=num_classes, pool='max')
+        optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+
+        train_loss, train_acc = train_epochs(model, train_data, batch_size, pad_idx, optimizer, num_epochs=20)
+        val_loss, val_acc = evaluate(model, val_data, batch_size, pad_idx)
+
+        print(f'lr={lr}, batch={batch_size} | train_acc={train_acc:.3f}, val_acc={val_acc:.3f}')
+        results.append((lr, batch_size, train_acc, val_acc))
+
+    return results
