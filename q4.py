@@ -80,6 +80,8 @@ class SimpleSelfAttentionClassifier(BaselineClassifier):
         return output
     
 # --- Training and evaluation helpers ---
+MAX_LEN = 256
+
 def iterate_batches(dataset, batch_size, pad_idx, shuffle=True):
     """
     dataset: (x_list, y_list)
@@ -91,7 +93,9 @@ def iterate_batches(dataset, batch_size, pad_idx, shuffle=True):
     batches = []
     for start in range(0, len(indices), batch_size):
         batch_idx = indices[start:start + batch_size]
-        x_seqs = [x_data[j] for j in batch_idx]
+        
+        # truncate sequences here before calling pad_batch
+        x_seqs = [x_data[j][:MAX_LEN] for j in batch_idx]
         y_labels = [y_data[j] for j in batch_idx]
 
         x = pad_batch(x_seqs, pad_idx)              # (B, T)
