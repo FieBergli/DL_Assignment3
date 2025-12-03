@@ -4,6 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from data import load_toy
 import math
+from tqdm.auto import trange
 
 (train, val), (i2c, c2i) = load_toy(final=False)
 train = train.long()
@@ -31,6 +32,8 @@ def evaluate_val_bits_and_accuracy(
     num_batches: int,
     device: torch.device,
 ) -> tuple[float, float]:
+    
+    print('HELLO')
 
     model.eval()
 
