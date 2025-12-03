@@ -6,8 +6,8 @@ from data import load_toy
 import math
 
 (train, val), (i2c, c2i) = load_toy(final=False)
-train = torch.tensor(train, dtype=torch.long)
-val = torch.tensor(val, dtype=torch.long)
+train = train.long()
+val = val.long()
 
 
 # Question 10
