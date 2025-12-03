@@ -111,10 +111,8 @@ class MultiHeadSelfAttentionClassifier(BaselineClassifier):
         # 4) Transformer block (this is where the attention + FFN live)
         x_emb = self.block(x_emb)                  # (B, T, E)
 
-        
-
-        # 6) Classification layer from BaselineClassifier
-        output = self.fc(out)
+        # 5) Classification layer at every timestep
+        output = self.fc(x_emb)
         return output
     
 def grid_search_attention(train_data, val_data, vocab_size, num_classes, pad_idx, num_epochs):
