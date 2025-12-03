@@ -2,13 +2,9 @@ import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import itertools
-from q4 import train_epochs, evaluate
-from data import load_imdb, load_imdb_synth, load_xor
-
 
 class TransformerBlockCausal(nn.Module):
-    def __init__(self, emb, num_heads, ff_dim):
+    def __init__(self, emb, num_heads, ff_dim, dropout=0.1):
         super().__init__()
         assert emb % num_heads == 0, "Embedding dim must be divisible by num_heads"
 
@@ -29,7 +25,12 @@ class TransformerBlockCausal(nn.Module):
         #feed forward
         self.ffn = nn.Sequential(nn.Linear(emb, ff_dim), 
                                  nn.ReLU(),
+                                 nn.Dropout(dropout),
                                  nn.Linear(ff_dim, emb))
+        
+        #dropout for residual connections
+        self.dropout_attention = nn.Dropout(dropout)
+        self.dropout_ff = nn.Dropout(dropout)
     
     def forward(self, x):
         B, T, E = x.size()
@@ -66,13 +67,13 @@ class TransformerBlockCausal(nn.Module):
 
         attention_out = self.out_proj(z)
 
-        #residual connection
-        x = x + attention_out
+        #residual connection and dropout
+        x = x + self.dropout_attention(attention_out)
 
-        #feed forward + layernorm 2 + residual
+        #feed forward + layernorm 2 + residual + dropout
         y = self.layernorm2(x)
         y = self.ffn(y)
-        x = x + y
+        x = x + self.dropout_ff(y)
         return x
         
 
