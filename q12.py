@@ -6,10 +6,6 @@ from data import load_toy
 import math
 from tqdm.auto import trange
 
-(train, val), (i2c, c2i) = load_toy(final=False)
-train = train.long()
-val = val.long()
-
 
 # Question 10
 # Treat this as a data loader -> call it outside anything where gradients are computed, and no required_grad=True
@@ -149,11 +145,18 @@ def train_autoregressive(
         print(f"Model with lr: {lr}")
         print(f"train_losses: {train_losses}")
         print(f"Val bits: {val_bits_history}")
-        print(f"Val accuracy") = val_acc_history
+        print(f"Val accuracy: {val_acc_history}")
         print(f"steps at eval: {steps_eval}")
         
 
 
-results = train_autoregressive(
+if __name__ == "__main__":
+    print("STARTING TRAINING")
+
+    (train, val), (i2c, c2i) = load_toy(final=False)
+    train = train.long()
+    val = val.long()
+    
+    results = train_autoregressive(
     train_data=train, val_data=val, context_len=256, batch_size=128, num_steps=50000
-)
+    )
