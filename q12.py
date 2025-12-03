@@ -80,6 +80,7 @@ def train_autoregressive(
     lrs = [1e-3, 1e-4, 3e-4]
     result_dict = {}
     for lr in lrs:
+        print("lr: {lr}")
         model = AutoRegressiveTransformer(
             vocab_size=len(i2c), emb=300, num_heads=6, max_len=context_len, num_layers=6
         )
@@ -142,13 +143,12 @@ def train_autoregressive(
                     f"val_bits={val_bits:.3f}, "
                     f"val_acc={val_acc:.3f}"
                 )
-        model_dict["train_losses"] = train_losses
-        model_dict["val_bits"] = val_bits_history
-        model_dict["val_acc"] = val_acc_history
-        model_dict["steps_eval"] = steps_eval
-        result_dict[lr] = model_dict
-
-    return result_dict
+        print(f"Model with lr: {lr}")
+        print(f"train_losses: {train_losses}")
+        print(f"Val bits: {val_bits_history}")
+        print(f"Val accuracy") = val_acc_history
+        print(f"steps at eval: {steps_eval}")
+        
 
 
 results = train_autoregressive(
