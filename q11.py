@@ -3,8 +3,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+
 class TransformerBlockCausal(nn.Module):
-    def __init__(self, emb, num_heads, ff_dim, dropout=0.1):
+    def __init__(self, emb, num_heads, ff_dim, max_len, dropout=0.1):
         super().__init__()
         assert emb % num_heads == 0, "Embedding dim must be divisible by num_heads"
 
@@ -18,20 +19,29 @@ class TransformerBlockCausal(nn.Module):
         self.to_v = nn.Linear(emb, emb)
         self.out_proj = nn.Linear(emb, emb)
 
-        #layer norms
+        # layer norms
         self.layernorm1 = nn.LayerNorm(emb)
         self.layernorm2 = nn.LayerNorm(emb)
 
-        #feed forward
-        self.ffn = nn.Sequential(nn.Linear(emb, ff_dim), 
-                                 nn.ReLU(),
-                                 nn.Dropout(dropout),
-                                 nn.Linear(ff_dim, emb))
-        
-        #dropout for residual connections
+        # feed forward
+        self.ffn = nn.Sequential(
+            nn.Linear(emb, ff_dim),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(ff_dim, emb),
+        )
+
+        # dropout for residual connections
         self.dropout_attention = nn.Dropout(dropout)
         self.dropout_ff = nn.Dropout(dropout)
-    
+
+        self.register_buffer(
+            "causal_mask",
+            torch.triu(torch.ones(max_len, max_len), diagonal=1)
+            .bool()
+            .view(1, 1, max_len, max_len),
+        )
+
     def forward(self, x):
         B, T, E = x.size()
         H = self.num_heads
@@ -40,9 +50,9 @@ class TransformerBlockCausal(nn.Module):
         y = self.layernorm1(x)
 
         # Q, K, V projections
-        q = self.to_q(y)                 
-        k = self.to_k(y)                
-        v = self.to_v(y) 
+        q = self.to_q(y)
+        k = self.to_k(y)
+        v = self.to_v(y)
 
         # Split into heads: (B, T, E) -> (B, H, T, D)
         q = q.view(B, T, H, D).permute(0, 2, 1, 3)  # (B, H, T, D)
@@ -52,35 +62,42 @@ class TransformerBlockCausal(nn.Module):
         # Scaled dot-product attention: (B, H, T, T)
         scores = torch.matmul(q, k.transpose(-2, -1)) / math.sqrt(D)
 
-        #causal masking
-        i, j = torch.triu_indices(T, T, offset=1, device=scores.device)
-        scores[..., i, j] = float('-inf')
+        # causal masking
 
-        attention = F.softmax(scores, dim=-1)            # (B, H, T, T)  
+        ## SLOW ##
+        # i, j = torch.triu_indices(T, T, offset=1, device=scores.device)
+        # scores[..., i, j] = float("-inf")
+        ## SLOW ##
+
+        mask = self.causal_mask[..., :T, :T]  # (T, T)
+        scores = scores.masked_fill(mask, float("-inf"))
+
+        attention = F.softmax(scores, dim=-1)  # (B, H, T, T)
 
         # Weighted sum over values: (B, H, T, D)
-        z = torch.matmul(attention, v) 
+        z = torch.matmul(attention, v)
 
         # Merge heads back: (B, T, E)
-        z = z.permute(0, 2, 1, 3).contiguous()      # (B, T, H, D)
+        z = z.permute(0, 2, 1, 3).contiguous()  # (B, T, H, D)
         z = z.view(B, T, E)
 
         attention_out = self.out_proj(z)
 
-        #residual connection and dropout
+        # residual connection and dropout
         x = x + self.dropout_attention(attention_out)
 
-        #feed forward + layernorm 2 + residual + dropout
+        # feed forward + layernorm 2 + residual + dropout
         y = self.layernorm2(x)
         y = self.ffn(y)
         x = x + self.dropout_ff(y)
         return x
-        
+
 
 class AutoRegressiveTransformer(nn.Module):
     """
     Predicts the next token for every position in the input sequence.
     """
+
     def __init__(self, vocab_size, emb=300, num_heads=6, max_len=256, num_layers=6):
         super().__init__()
 
@@ -90,15 +107,18 @@ class AutoRegressiveTransformer(nn.Module):
 
         # token + position embeddings
         self.token_embedding = nn.Embedding(vocab_size, emb)
-        self.pos_embedding   = nn.Embedding(max_len, emb)
+        self.pos_embedding = nn.Embedding(max_len, emb)
 
         ff_dim = 4 * emb
         self.blocks = nn.ModuleList(
-            [TransformerBlockCausal(emb, num_heads, ff_dim) for _ in range(num_layers)]
+            [
+                TransformerBlockCausal(emb, num_heads, ff_dim, max_len)
+                for _ in range(num_layers)
+            ]
         )
 
         self.final_ln = nn.LayerNorm(emb)
-        self.fc_out   = nn.Linear(emb, vocab_size)
+        self.fc_out = nn.Linear(emb, vocab_size)
 
     def forward(self, x: torch.LongTensor) -> torch.Tensor:
         """
@@ -118,10 +138,10 @@ class AutoRegressiveTransformer(nn.Module):
 
         # 2) transformer blocks with *causal masking*
         for block in self.blocks:
-            h = block(h) 
+            h = block(h)
 
         # 3) final layer norm and projection to logits
-        h = self.final_ln(h)          # (B, T, E)
-        output = self.fc_out(h)       # (B, T, vocab_size)
+        h = self.final_ln(h)  # (B, T, E)
+        output = self.fc_out(h)  # (B, T, vocab_size)
 
         return output

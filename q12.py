@@ -4,7 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from data import load_toy
 import math
-from tqdm.auto import trange
+from tqdm import tqdm
 
 
 # Question 10
@@ -28,41 +28,38 @@ def evaluate_val_bits_and_accuracy(
     num_batches: int,
     device: torch.device,
 ) -> tuple[float, float]:
-    
-    print('HELLO')
-
     model.eval()
+    with torch.no_grad():
+        total_bits = 0.0
+        total_correct = 0
+        total_tokens = 0
 
-    total_bits = 0.0
-    total_correct = 0
-    total_tokens = 0
+        for _ in tqdm(range(num_batches)):
+            # Sample a batch of length L+1 from the *validation* data
+            batch = batch_dataset(val_data, batch_size, context_len + 1)  # (B, L+1)
+            batch = batch.to(device)
 
-    for _ in range(num_batches):
-        # Sample a batch of length L+1 from the *validation* data
-        batch = batch_dataset(val_data, batch_size, context_len + 1)  # (B, L+1)
-        batch = batch.to(device)
+            x = batch[:, :-1]  # (B, L)  context
+            y = batch[:, -1]  # (B,)    target: last token only
 
-        x = batch[:, :-1]  # (B, L)  context
-        y = batch[:, -1]  # (B,)    target: last token only
+            # Forward pass
+            output = model(x)  # (B, L, vocab_size)
+            last_output = output[:, -1, :]  # (B, vocab_size)
 
-        # Forward pass
-        output = model(x)  # (B, L, vocab_size)
-        last_output = output[:, -1, :]  # (B, vocab_size)
+            # Cross-entropy in nats, mean over the batch
+            loss_nats = F.cross_entropy(last_output, y, reduction="mean")
 
-        # Cross-entropy in nats, mean over the batch
-        loss_nats = F.cross_entropy(last_output, y, reduction="mean")
+            # Convert nats -> bits
+            loss_bits = loss_nats / math.log(2.0)
+            total_bits += loss_bits.item()
 
-        # Convert nats -> bits
-        loss_bits = loss_nats / math.log(2.0)
-        total_bits += loss_bits.item()
+            # Accuracy at last position
+            preds = last_output.argmax(dim=-1)  # (B,)
+            total_correct += (preds == y).sum().item()
+            total_tokens += y.numel()
 
-        # Accuracy at last position
-        preds = last_output.argmax(dim=-1)  # (B,)
-        total_correct += (preds == y).sum().item()
-        total_tokens += y.numel()
-
-    avg_bits_per_char = total_bits / num_batches
-    accuracy = total_correct / total_tokens
+        avg_bits_per_char = total_bits / num_batches
+        accuracy = total_correct / total_tokens
 
     return avg_bits_per_char, accuracy
 
@@ -72,14 +69,17 @@ def train_autoregressive(
     val_data: torch.LongTensor,
     context_len: int = 256,
     batch_size: int = 64,
-    num_steps: int = 50_000,  # one step means one gradient update using one batch of data
-    eval_every: int = 5_000,
-    device: torch.device = torch.device("cpu"),
+    num_steps: int = 2000,  # one step means one gradient update using one batch of data
+    eval_every: int = 1000,
+    device: torch.device = (
+        torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+    ),
 ):
+    print(f"STARTING TRAINING ON {device}")
     lrs = [1e-3, 1e-4, 3e-4]
     result_dict = {}
     for lr in lrs:
-        print("lr: {lr}")
+        print(f"lr: {lr}")
         model = AutoRegressiveTransformer(
             vocab_size=len(i2c), emb=300, num_heads=6, max_len=context_len, num_layers=6
         )
@@ -92,8 +92,7 @@ def train_autoregressive(
         val_acc_history = []
         steps_eval = []
 
-        for step in range(1, num_steps + 1):
-            model.train()
+        for step in tqdm(range(1, num_steps + 1)):
 
             # --- sample batch from train data ---
             batch = batch_dataset(train_data, batch_size, context_len + 1)  # (B, L+1)
@@ -131,13 +130,15 @@ def train_autoregressive(
                     num_batches=1000,  # as requested
                     device=device,
                 )
+                model.train()
+
                 val_bits_history.append(val_bits)
                 val_acc_history.append(val_acc)
                 steps_eval.append(step)
 
                 print(
                     f"learning rate: {lr},"
-                    f"[step {step:6d}],"
+                    f"[step {step:6}],"
                     f"train_loss={loss.item():.4f}, "
                     f"val_bits={val_bits:.3f}, "
                     f"val_acc={val_acc:.3f}"
@@ -147,16 +148,21 @@ def train_autoregressive(
         print(f"Val bits: {val_bits_history}")
         print(f"Val accuracy: {val_acc_history}")
         print(f"steps at eval: {steps_eval}")
-        
+
+        model_dict["train_losses"] = train_losses
+        model_dict["val_bits"] = val_bits_history
+        model_dict["val_acc"] = val_acc_history
+        model_dict["steps_eval"] = steps_eval
+        result_dict[lr] = model_dict
+
+    return result_dict
 
 
 if __name__ == "__main__":
-    print("STARTING TRAINING")
-
     (train, val), (i2c, c2i) = load_toy(final=False)
     train = train.long()
     val = val.long()
-    
+
     results = train_autoregressive(
-    train_data=train, val_data=val, context_len=256, batch_size=128, num_steps=50000
+        train_data=train, val_data=val, context_len=256, batch_size=64
     )
