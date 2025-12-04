@@ -1,0 +1,28 @@
+============================================================================================== 
+Warning! Mixing Conda and module environments may lead to corruption of the
+user environment. 
+We do not recommend users mixing those two environments unless absolutely
+necessary. Note that 
+SURF does not provide any support for Conda environment.
+For more information, please refer to our software policy page:
+https://servicedesk.surf.nl/wiki/display/WIKI/Software+policy+Snellius#SoftwarepolicySnellius-UseofAnacondaandMinicondaenvironmentsonSnellius 
+
+Remember that many packages have already been installed on the system and can
+be loaded using 
+the 'module load <package__name>' command. If you are uncertain if a package is
+already available 
+on the system, please use 'module avail' or 'module spider' to search for it.
+============================================================================================== 
+Collecting wget
+  Downloading wget-3.2.zip (10 kB)
+  Preparing metadata (setup.py): started
+  Preparing metadata (setup.py): finished with status 'done'
+Building wheels for collected packages: wget
+  Building wheel for wget (setup.py): started
+  Building wheel for wget (setup.py): finished with status 'done'
+  Created wheel for wget: filename=wget-3.2-py3-none-any.whl size=9685 sha256=51c234ed0cd08df91cf103c5eb8c78b67f96e2b98ed89e6cb9e74010eb21f777
+  Stored in directory: /gpfs/home1/scur2543/.cache/pip/wheels/01/46/3b/e29ffbe4ebe614ff224bad40fc6a5773a67a163251585a13a9
+Successfully built wget
+Installing collected packages: wget
+Successfully installed wget-3.2
+[2025-12-03T22:31:21.932] error: *** JOB 17112924 ON gcn19 CANCELLED AT 2025-12-03T22:31:21 DUE to SIGNAL Terminated ***

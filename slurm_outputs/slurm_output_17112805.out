@@ -1,0 +1,22 @@
+============================================================================================== 
+Warning! Mixing Conda and module environments may lead to corruption of the
+user environment. 
+We do not recommend users mixing those two environments unless absolutely
+necessary. Note that 
+SURF does not provide any support for Conda environment.
+For more information, please refer to our software policy page:
+https://servicedesk.surf.nl/wiki/display/WIKI/Software+policy+Snellius#SoftwarepolicySnellius-UseofAnacondaandMinicondaenvironmentsonSnellius 
+
+Remember that many packages have already been installed on the system and can
+be loaded using 
+the 'module load <package__name>' command. If you are uncertain if a package is
+already available 
+on the system, please use 'module avail' or 'module spider' to search for it.
+============================================================================================== 
+Traceback (most recent call last):
+  File "/gpfs/home1/scur2543/DL_Assignment3/q12.py", line 5, in <module>
+    from data import load_toy
+  File "/gpfs/home1/scur2543/DL_Assignment3/data.py", line 1, in <module>
+    import wget, os, gzip, pickle, random, re, sys, importlib, tqdm, math, os, gzip, re, string
+ModuleNotFoundError: No module named 'wget'
+Total runtime: 00:00:12
