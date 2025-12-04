@@ -93,12 +93,13 @@ def iterate_batches(dataset, batch_size, pad_idx):
     return batches
 
 
-def train_epochs(model, train_data, batch_size, pad_idx, optimizer, num_epochs=5):
+def train_epochs(model, train_data, batch_size, pad_idx, optimizer, num_epochs=5, device = "cuda" if torch.cuda.is_available() else "cpu"):
     for epoch in range(1, num_epochs + 1):
         total_loss, total_correct, total_examples = 0.0, 0, 0
         print(f"\nEpoch {epoch}/{num_epochs}")
 
         for x, y in iterate_batches(train_data, batch_size, pad_idx):
+            x, y = x.to(device), y.to(device)
             optimizer.zero_grad()
             output = model(x)
             loss = F.cross_entropy(output, y)
@@ -138,7 +139,7 @@ def evaluate(model, val_data, batch_size, pad_idx):
 
 
 def grid_search_attention(
-    train_data, val_data, vocab_size, num_classes, pad_idx, dataset_name:str, num_epochs=20
+    train_data, val_data, vocab_size, num_classes, pad_idx, dataset_name:str, num_epochs=20, device = "cuda" if torch.cuda.is_available() else "cpu"
 ):
     lrs = [1e-3, 5e-3, 1e-4]
     batch_sizes = [32, 64, 128]
@@ -152,6 +153,7 @@ def grid_search_attention(
         model = SimpleSelfAttentionClassifier(
             vocab_size=vocab_size, num_classes=num_classes, pool="max", max_len=256
         )
+        model = model.to(device)
         optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
         _, train_acc = train_epochs(
