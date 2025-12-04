@@ -4,7 +4,6 @@ import torch.nn as nn
 import torch
 import torch.nn.functional as F
 import itertools
-import math
 from data import load_imdb, load_imdb_synth, load_xor
 
 
@@ -174,7 +173,7 @@ def grid_search_attention(
     for lr, batch_size in itertools.product(lrs, batch_sizes):
         print(f"\n=== Training with lr={lr}, batch={batch_size} ===")
         model = SimpleSelfAttentionClassifier(
-            vocab_size=vocab_size, num_classes=num_classes, pool="max"
+            vocab_size=vocab_size, num_classes=num_classes, pool="max", max_len=256
         )
         optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
@@ -218,6 +217,7 @@ results1 = grid_search_attention(
     num_classes=numcls_1,
     pad_idx=pad_idx1,
     num_epochs=20,
+    dataset_name="IMDb"
 )
 
 
@@ -228,6 +228,7 @@ results2 = grid_search_attention(
     num_classes=numcls_2,
     pad_idx=pad_idx2,
     num_epochs=100,
+    dataset_name="IMBd synthetic"
 )
 
 results3 = grid_search_attention(
@@ -237,4 +238,5 @@ results3 = grid_search_attention(
     num_classes=numcls_3,
     pad_idx=pad_idx3,
     num_epochs=100,
+    dataset_name="XOR"
 )
