@@ -22,9 +22,6 @@ class BaselineClassifier(nn.Module):
         num_classes: int = 2,
         pool: str = "mean",
     ):
-        """
-        pool: 'mean', 'max', or 'first'
-        """
         super().__init__()
         self.emb = emb_dim
         self.embedding = nn.Embedding(num_embeddings=vocab_size, embedding_dim=emb_dim)
@@ -32,23 +29,18 @@ class BaselineClassifier(nn.Module):
         self.pool = pool
 
     def forward(self, x: torch.LongTensor) -> torch.Tensor:
-        # x: (batch, time), dtype=torch.long
-        # 1) embed -> (batch, time, emb)
-        x_emb = self.embedding(x)  # shape: (B, T, E)
+        
+        # embed -> (batch, time, emb)
+        x_emb = self.embedding(x)  
 
-        # 2) global pooling -> (batch, emb)
+        # global pooling -> (batch, emb)
         if self.pool == "mean":
-            # mean over time dimension, ignoring padding is more correct but here
-            # we assume padding indices have embeddings that don't bias too much.
             out = x_emb.mean(dim=1)
         elif self.pool == "max":
-            # max over time dimension
             out, _ = x_emb.max(dim=1)
         else:  # first
-            # take first token embedding (e.g., x_emb[:, 0, :])
             out = x_emb[:, 0, :]
 
-        # 3) linear projection -> (batch, num_classes)
         output = self.fc(out)
         return output
 
@@ -69,31 +61,18 @@ class SimpleSelfAttentionClassifier(BaselineClassifier):
 
     def forward(self, x: torch.LongTensor) -> torch.Tensor:
         x = x[:, :self.max_len]
-        # x: (B, T)
-        x_emb = self.embedding(x)  # (B, T, E)
+        x_emb = self.embedding(x) 
 
-        # compute raw attention logits: (B, T, E) @ (B, E, T) -> (B, T, T)
-        # We use torch.matmul which broadcasts batch dims properly.
-        attention_output = torch.matmul(x_emb, x_emb.transpose(1, 2))  # (B, T, T)
+        attention_output = torch.matmul(x_emb, x_emb.transpose(1, 2))  
+        attention_weights = F.softmax(attention_output, dim=-1) 
 
-        # optional: we might want to mask padding positions here if we have them
-
-        # attention distribution over time dimension (softmax over last dim)
-        attention_weights = F.softmax(attention_output, dim=-1)  # (B, T, T)
-
-        # weighted sum over values (here values == x_emb): (B, T, T) @ (B, T, E) -> (B, T, E)
-        attended = torch.matmul(attention_weights, x_emb)  # (B, T, E)
-
-        # now global max pooling over time
-        out, _ = attended.max(dim=1)  # (B, E)
-        output = self.fc(out)  # (B, num_classes)
+        attended = torch.matmul(attention_weights, x_emb) 
+        out, _ = attended.max(dim=1)  
+        output = self.fc(out)  
         return output
 
 
-# --- Training and evaluation helpers ---
 MAX_LEN = 256
-
-
 def iterate_batches(dataset, batch_size, pad_idx):
     """
     dataset: (x_list, y_list)
@@ -105,13 +84,11 @@ def iterate_batches(dataset, batch_size, pad_idx):
     batches = []
     for start in range(0, len(indices), batch_size):
         batch_idx = indices[start : start + batch_size]
-
-        # truncate sequences here before calling pad_batch
         x_seqs = [x_data[j][:MAX_LEN] for j in batch_idx]
         y_labels = [y_data[j] for j in batch_idx]
 
-        x = pad_batch(x_seqs, pad_idx)  # (B, T)
-        y = torch.tensor(y_labels, dtype=torch.long)  # (B,)
+        x = pad_batch(x_seqs, pad_idx)
+        y = torch.tensor(y_labels, dtype=torch.long) 
         batches.append((x, y))
     return batches
 
