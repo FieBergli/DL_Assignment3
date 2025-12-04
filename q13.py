@@ -275,7 +275,7 @@ def train_and_sample_q13(
     plt.legend()
 
     plt.tight_layout()
-    fig.savefig("q13_training_plots.png", dpi=300)
+    plt.savefig("q13_training_plots.png", dpi=300)
     plt.show()
 
     # return collected results plus samples
@@ -309,8 +309,8 @@ if __name__ == "__main__":
         context_len=256,
         batch_size=64,
         total_steps=50_000,
-        eval_every=10_000,
-        validate_num_batches=1000,
+        eval_every=10000,
+        validate_num_batches=math.ceil(10_000/64),
         S_seed=16,
         gen_length=200,
         temperature_for_samples=1.0,
