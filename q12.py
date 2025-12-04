@@ -5,7 +5,7 @@ import torch.nn.functional as F
 from data import load_toy
 import math
 from tqdm import tqdm
-
+import json
 
 # Question 10
 # Treat this as a data loader -> call it outside anything where gradients are computed, and no required_grad=True
@@ -35,25 +35,19 @@ def evaluate_val_bits_and_accuracy(
         total_tokens = 0
 
         for _ in tqdm(range(num_batches)):
-            # Sample a batch of length L+1 from the *validation* data
-            batch = batch_dataset(val_data, batch_size, context_len + 1)  # (B, L+1)
+            batch = batch_dataset(val_data, batch_size, context_len + 1)
             batch = batch.to(device)
+            x = batch[:, :-1]
+            y = batch[:, -1]
 
-            x = batch[:, :-1]  # (B, L)  context
-            y = batch[:, -1]  # (B,)    target: last token only
+            output = model(x)
+            last_output = output[:, -1, :]
 
-            # Forward pass
-            output = model(x)  # (B, L, vocab_size)
-            last_output = output[:, -1, :]  # (B, vocab_size)
-
-            # Cross-entropy in nats, mean over the batch
             loss_nats = F.cross_entropy(last_output, y, reduction="mean")
 
-            # Convert nats -> bits
             loss_bits = loss_nats / math.log(2.0)
             total_bits += loss_bits.item()
 
-            # Accuracy at last position
             preds = last_output.argmax(dim=-1)  # (B,)
             total_correct += (preds == y).sum().item()
             total_tokens += y.numel()
@@ -74,10 +68,15 @@ def train_autoregressive(
     device: torch.device = (
         torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
     ),
+    log_file: str | None = "training_log.txt",
 ):
+    with open("autoregressive_training.txt", "a") as f:
+        f.write("Autoregressive_training for q12:")
+
+
     print(f"STARTING TRAINING ON {device}")
     lrs = [1e-3, 1e-4, 3e-4]
-    result_dict = {}
+
     for lr in lrs:
         print(f"lr: {lr}")
         model = AutoRegressiveTransformer(
@@ -86,25 +85,19 @@ def train_autoregressive(
         model.to(device)
         optimizer = torch.optim.AdamW(model.parameters(), lr=lr)
 
-        model_dict = {}
         train_losses = []
         val_bits_history = []
         val_acc_history = []
         steps_eval = []
 
         for step in tqdm(range(1, num_steps + 1)):
-
-            # --- sample batch from train data ---
-            batch = batch_dataset(train_data, batch_size, context_len + 1)  # (B, L+1)
+            batch = batch_dataset(train_data, batch_size, context_len + 1)
             batch = batch.to(device)
+            x = batch[:, :-1]
+            y = batch[:, 1:]
 
-            x = batch[:, :-1]  # (B, L)
-            y = batch[:, 1:]  # (B, L)  predict next token at every position
+            logits = model(x)
 
-            # --- forward ---
-            logits = model(x)  # (B, L, vocab_size)
-
-            # reshape for cross_entropy: (B*L, vocab_size) vs (B*L)
             B, L, V = logits.shape
             loss = F.cross_entropy(
                 logits.reshape(B * L, V),
@@ -112,7 +105,6 @@ def train_autoregressive(
                 reduction="mean",
             )
 
-            # --- backward + update ---
             optimizer.zero_grad()
             loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
@@ -120,14 +112,13 @@ def train_autoregressive(
 
             train_losses.append(loss.item())
 
-            # --- periodic evaluation on validation set (Q12) ---
             if step % eval_every == 0 or step == 1:
                 val_bits, val_acc = evaluate_val_bits_and_accuracy(
                     model=model,
                     val_data=val_data,
                     batch_size=batch_size,
                     context_len=context_len,
-                    num_batches=1000,  # as requested
+                    num_batches=1000,
                     device=device,
                 )
                 model.train()
@@ -138,24 +129,14 @@ def train_autoregressive(
 
                 print(
                     f"learning rate: {lr},"
-                    f"[step {step:6}],"
+                    f"[step {step}],"
                     f"train_loss={loss.item():.4f}, "
                     f"val_bits={val_bits:.3f}, "
                     f"val_acc={val_acc:.3f}"
                 )
-        print(f"Model with lr: {lr}")
-        print(f"train_losses: {train_losses}")
-        print(f"Val bits: {val_bits_history}")
-        print(f"Val accuracy: {val_acc_history}")
-        print(f"steps at eval: {steps_eval}")
 
-        model_dict["train_losses"] = train_losses
-        model_dict["val_bits"] = val_bits_history
-        model_dict["val_acc"] = val_acc_history
-        model_dict["steps_eval"] = steps_eval
-        result_dict[lr] = model_dict
-
-    return result_dict
+        with open("autoregressive_training.txt", "a") as f:
+            f.write(f"Model with lr: {lr}\n train_losses: {train_losses}\n Val bits: {val_bits_history} \n Val accuracy: {val_acc_history} \n steps at eval: {steps_eval}")
 
 
 if __name__ == "__main__":
@@ -166,3 +147,5 @@ if __name__ == "__main__":
     results = train_autoregressive(
         train_data=train, val_data=val, context_len=256, batch_size=64
     )
+    
+
