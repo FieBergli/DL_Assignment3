@@ -15,6 +15,7 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 from typing import List
 
+
 # import model and data functions: adjust import paths if your files are named differently
 from q11 import AutoRegressiveTransformer
 from q12 import batch_dataset, evaluate_val_bits_and_accuracy  # your Q12 utilities
@@ -24,6 +25,7 @@ from data import load_toy  # your toy data loader (as used earlier)
 # EXACT sample function from the assignment (use this)
 # ---------------------------
 import torch.distributions as dist
+
 
 def sample(lnprobs: torch.Tensor, temperature: float = 1.0) -> int:
     """
@@ -48,7 +50,9 @@ def generate_from_seed(
     seed_ids: List[int],
     gen_len: int,
     temperature: float = 1.0,
-    device: torch.device = torch.device("cpu")
+    device: torch.device = (
+        torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+    ),
 ) -> List[int]:
     """
     Autoregressively generate `gen_len` additional tokens given an initial seed (list of token ids).
@@ -65,7 +69,7 @@ def generate_from_seed(
             # maybe this doesn't have to be an if/else because or model defintilty has a max_len / context_len of 256 right???????????!!!!!!!!!!!!!!!
             # Respect context window: if model has max_len, keep only the last max_len tokens
             if hasattr(model, "max_len"):
-                context = generated[-model.max_len:]
+                context = generated[-model.max_len :]
             else:
                 context = generated[:]
 
@@ -95,10 +99,12 @@ def train_and_sample_q13(
     total_steps: int = 50_000,
     eval_every: int = 10_000,
     validate_num_batches: int = 1000,
-    S_seed: int = 16,          # S = 16 as requested
-    gen_length: int = 200,     # how many tokens to generate for inspection
+    S_seed: int = 16,  # S = 16 as requested
+    gen_length: int = 200,  # how many tokens to generate for inspection
     temperature_for_samples: float = 1.0,
-    device: torch.device = (torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")),
+    device: torch.device = (
+        torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+    ),
 ):
     """
     Train autoregressive transformer and at every eval_every steps:
@@ -109,12 +115,18 @@ def train_and_sample_q13(
       results dict containing histories and samples
     """
 
-    print(f"Training on {device} for total_steps={total_steps}, eval_every={eval_every}")
+    print(
+        f"Training on {device} for total_steps={total_steps}, eval_every={eval_every}"
+    )
     # Create model (same architecture choices as in your Q12 code)
-    model = AutoRegressiveTransformer(vocab_size=len(i2c), emb=300, num_heads=6, max_len=context_len, num_layers=6)
+    model = AutoRegressiveTransformer(
+        vocab_size=len(i2c), emb=300, num_heads=6, max_len=context_len, num_layers=6
+    )
     model.to(device)
 
-    optimizer = torch.optim.AdamW(model.parameters(), lr=3e-4)  # lr chosen; you can tune
+    optimizer = torch.optim.AdamW(
+        model.parameters(), lr=3e-4
+    )  # lr chosen; you can tune
 
     # Storage for histories
     train_loss_history = []
@@ -136,14 +148,16 @@ def train_and_sample_q13(
         batch = batch.to(device)
 
         x = batch[:, :-1]  # (B, L)
-        y = batch[:, 1:]   # (B, L) -> next-token targets at every position
+        y = batch[:, 1:]  # (B, L) -> next-token targets at every position
 
         # --- 2) forward pass ---
         logits = model(x)  # (B, L, V)
         B, L, V = logits.shape
 
         # flatten time and batch dims for cross-entropy as usual
-        loss = F.cross_entropy(logits.reshape(B * L, V), y.reshape(B * L), reduction="mean")
+        loss = F.cross_entropy(
+            logits.reshape(B * L, V), y.reshape(B * L), reduction="mean"
+        )
 
         # --- 3) backward + gradient norm + clipping + step ---
         optimizer.zero_grad()
@@ -181,11 +195,19 @@ def train_and_sample_q13(
             seed_ids = seed_batch[0].detach().cpu().tolist()  # list[int] length S
 
             # generate additional tokens autoregressively using the assignment sample()
-            generated_ids = generate_from_seed(model, seed_ids, gen_len=gen_length, temperature=temperature_for_samples, device=device)
+            generated_ids = generate_from_seed(
+                model,
+                seed_ids,
+                gen_len=gen_length,
+                temperature=temperature_for_samples,
+                device=device,
+            )
 
             # decode to characters using i2c mapping
             def decode(ids):
-                return "".join(i2c[int(i)] for i in ids)  # mapping index->char; i2c uses indices
+                return "".join(
+                    i2c[int(i)] for i in ids
+                )  # mapping index->char; i2c uses indices
 
             sample_text = decode(generated_ids)
 
@@ -199,7 +221,9 @@ def train_and_sample_q13(
             }
 
             print("\n=== EVAL @ step", step, "===")
-            print(f"Validation bits (avg over {validate_num_batches} batches): {val_bits:.4f} bits/char")
+            print(
+                f"Validation bits (avg over {validate_num_batches} batches): {val_bits:.4f} bits/char"
+            )
             print(f"Validation accuracy (last-token): {val_acc:.4f}")
             print(f"Sample (seed length S={S_seed} + generated {gen_length} chars):")
             # To avoid flooding terminal, print first ~400 chars
@@ -213,16 +237,19 @@ def train_and_sample_q13(
     # --- 5) plotting results ---
     # Plot training loss (moving average for readability), gradient norm, and val bits at eval points
     import matplotlib.pyplot as plt
+
     plt.figure(figsize=(14, 4))
 
     # training loss (raw and smoothed)
     plt.subplot(1, 3, 1)
     plt.plot(train_loss_history, alpha=0.4, label="train_loss (raw)")
+
     # simple moving average smoothing
     def moving_average(x, w=100):
         if len(x) < w:
             return x
         return [sum(x[i : i + w]) / w for i in range(len(x) - w + 1)]
+
     ma = moving_average(train_loss_history, w=200)
     plt.plot(range(len(ma)), ma, color="red", label=f"MA (w=200)")
     plt.title("Training loss")
@@ -272,7 +299,8 @@ if __name__ == "__main__":
     results = train_and_sample_q13(
         train_data=train,
         val_data=val,
-        i2c=i2c, c2i=c2i,
+        i2c=i2c,
+        c2i=c2i,
         context_len=256,
         batch_size=64,
         total_steps=50_000,
