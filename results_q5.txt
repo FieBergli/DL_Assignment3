@@ -1,0 +1,82 @@
+Dataset: IMDbDataset: IMDbDataset: IMDbDataset: IMDbDataset: IMDb
+ New model:  
+
+ lr=0.001, batch=32 | train_acc=0.602, val_acc=0.542
+ New model:  
+
+ lr=0.001, batch=64 | train_acc=0.603, val_acc=0.550
+ New model:  
+
+ lr=0.001, batch=128 | train_acc=0.603, val_acc=0.546
+ New model:  
+
+ lr=0.005, batch=32 | train_acc=0.752, val_acc=0.577
+ New model:  
+
+ lr=0.005, batch=64 | train_acc=0.627, val_acc=0.549
+ New model:  
+
+ lr=0.005, batch=128 | train_acc=0.598, val_acc=0.548
+ New model:  
+
+ lr=0.0001, batch=32 | train_acc=0.595, val_acc=0.547
+ New model:  
+
+ lr=0.0001, batch=64 | train_acc=0.586, val_acc=0.543
+ New model:  
+
+ lr=0.0001, batch=128 | train_acc=0.576, val_acc=0.541Dataset: IMBd synthetic
+ New model:  
+
+ lr=0.001, batch=32 | train_acc=0.503, val_acc=0.501
+ New model:  
+
+ lr=0.001, batch=64 | train_acc=0.498, val_acc=0.501
+ New model:  
+
+ lr=0.001, batch=128 | train_acc=0.497, val_acc=0.501
+ New model:  
+
+ lr=0.005, batch=32 | train_acc=0.752, val_acc=0.746
+ New model:  
+
+ lr=0.005, batch=64 | train_acc=0.753, val_acc=0.746
+ New model:  
+
+ lr=0.005, batch=128 | train_acc=0.749, val_acc=0.755
+ New model:  
+
+ lr=0.0001, batch=32 | train_acc=0.495, val_acc=0.501
+ New model:  
+
+ lr=0.0001, batch=64 | train_acc=0.498, val_acc=0.501
+ New model:  
+
+ lr=0.0001, batch=128 | train_acc=0.502, val_acc=0.501Dataset: XOR
+ New model:  
+
+ lr=0.001, batch=32 | train_acc=0.497, val_acc=0.500
+ New model:  
+
+ lr=0.001, batch=64 | train_acc=0.499, val_acc=0.500
+ New model:  
+
+ lr=0.001, batch=128 | train_acc=0.501, val_acc=0.499
+ New model:  
+
+ lr=0.005, batch=32 | train_acc=0.746, val_acc=0.750
+ New model:  
+
+ lr=0.005, batch=64 | train_acc=0.753, val_acc=0.750
+ New model:  
+
+ lr=0.005, batch=128 | train_acc=0.753, val_acc=0.750
+ New model:  
+
+ lr=0.0001, batch=32 | train_acc=0.499, val_acc=0.501
+ New model:  
+
+ lr=0.0001, batch=64 | train_acc=0.496, val_acc=0.500
+ New model:  
+
+ lr=0.0001, batch=128 | train_acc=0.496, val_acc=0.500
