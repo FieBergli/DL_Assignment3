@@ -68,10 +68,7 @@ def generate_from_seed(
         for _ in range(gen_len):
             # maybe this doesn't have to be an if/else because or model defintilty has a max_len / context_len of 256 right???????????!!!!!!!!!!!!!!!
             # Respect context window: if model has max_len, keep only the last max_len tokens
-            if hasattr(model, "max_len"):
-                context = generated[-model.max_len :]
-            else:
-                context = generated[:]
+            context = generated[-model.max_len :]
 
             # Build input tensor shape (1, T)
             x = torch.tensor([context], dtype=torch.long, device=device)  # (1, T)
