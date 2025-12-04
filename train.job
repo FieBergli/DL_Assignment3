@@ -5,7 +5,7 @@
 #SBATCH --job-name=Train_GPT
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=9
-#SBATCH --time=01:30:00
+#SBATCH --time=02:30:00
 #SBATCH --output=slurm_outputs/slurm_output_%A.out
 
 start_time=$(date +%s)
