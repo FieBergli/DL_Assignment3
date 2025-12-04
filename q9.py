@@ -5,19 +5,19 @@ import torch.nn.functional as F
 import itertools
 from models import BaselineClassifier
 from q4 import train_epochs, evaluate
-from data import load_xor
+from data import load_imdb
 
 
 class TransformerBlock(nn.Module):
-    def __init__(self, emb, num_heads, ff_dim):
+    def __init__(self, emb, num_heads, ff_dim, dropout=0.1):
         super().__init__()
         assert emb % num_heads == 0, "Embedding dim must be divisible by num_heads"
 
         self.emb = emb
         self.num_heads = num_heads
         self.head_dim = emb // num_heads
+        self.dropout = nn.Dropout(dropout)
 
-        # --- multi-head self-attention parameters (Q, K, V, out_proj) ---
         self.to_q = nn.Linear(emb, emb)
         self.to_k = nn.Linear(emb, emb)
         self.to_v = nn.Linear(emb, emb)
@@ -51,23 +51,22 @@ class TransformerBlock(nn.Module):
 
         # Scaled dot-product attention: (B, H, T, T)
         scores = torch.matmul(q, k.transpose(-2, -1)) / math.sqrt(D)
-        attn = F.softmax(scores, dim=-1)  # (B, H, T, T)
+        attention = F.softmax(scores, dim=-1)  # (B, H, T, T)
 
         # Weighted sum over values: (B, H, T, D)
-        z = torch.matmul(attn, v)
+        z = torch.matmul(attention, v)
 
         # Merge heads back: (B, T, E)
         z = z.permute(0, 2, 1, 3).contiguous()  # (B, T, H, D)
         z = z.view(B, T, E)
 
         attention_out = self.out_proj(z)
+        attention_out = self.dropout(attention_out)
 
-        # residual connection
         x = x + attention_out
-
-        # feed forward + layernorm 2 + residual
         y = self.layernorm2(x)
         y = self.ffn(y)
+        y = self.dropout(y)
         x = x + y
         return x
 
@@ -77,7 +76,16 @@ class MultiHeadSelfAttentionClassifier(BaselineClassifier):
     Baseline + Transformer block (multi-head self-attention + FFN) + select pooling.
     """
 
-    def __init__(self, vocab_size, emb=300, num_classes=2, num_heads=6, max_len=256):
+    def __init__(
+        self,
+        vocab_size,
+        emb=300,
+        num_classes=2,
+        num_heads=6,
+        max_len=256,
+        num_blocks=3,
+        dropout=0.1,
+    ):
         super().__init__(
             vocab_size=vocab_size, emb_dim=emb, num_classes=num_classes, pool="first"
         )
@@ -87,36 +95,34 @@ class MultiHeadSelfAttentionClassifier(BaselineClassifier):
 
         # position embedding layer
         self.pos_embedding = nn.Embedding(max_len, emb)
-
-        # transoformer block
         ff_dim = 4 * emb
-        self.block = TransformerBlock(emb, num_heads, ff_dim)
+        # 3 transoformer block
+        self.blocks = nn.ModuleList(
+            [
+                TransformerBlock(emb, num_heads, ff_dim, dropout=dropout)
+                for _ in range(num_blocks)
+            ]
+        )
 
     def forward(self, x: torch.LongTensor) -> torch.Tensor:
         """
         x: (B, T) with token indices
         Returns: logits of shape (B, num_classes)
         """
-        B, T = x.size()  # B = batch size, T = sequence length
-        E = self.emb  # embedding size
+        B, T = x.size()
+        E = self.emb
+        x_emb = self.embedding(x)
 
-        # 1) Embed tokens: (B, T) -> (B, T, E)
-        x_emb = self.embedding(x)  # (batch, time, emb)
-
-        # 2) Embed Position
-        pos_idx = torch.arange(T, device=x.device).unsqueeze(0).expand(B, T)  # (B, T)
-        pos_emb = self.pos_embedding(pos_idx)  # (B, T, E)
-
-        # 3) Add them together
+        # Embed Position
+        pos_idx = torch.arange(T, device=x.device).unsqueeze(0).expand(B, T)
+        pos_emb = self.pos_embedding(pos_idx)
         x_emb = x_emb + pos_emb
 
-        # 4) Transformer block (this is where the attention + FFN live)
-        x_emb = self.block(x_emb)  # (B, T, E)
+        # Transformer blocks
+        for block in self.blocks:
+            x_emb = block(x_emb)
 
-        # 5) Select pooling: take the first token as sequence representation
-        out = x_emb[:, 0, :]  # (B, E)
-
-        # 6) Classification layer from BaselineClassifier
+        out = x_emb[:, 0, :]
         output = self.fc(out)
         return output
 
@@ -134,7 +140,7 @@ def grid_search_attention(
     batch_sizes = [32, 64, 128]
     results = []
     with open("results_q8.txt", "a") as f:
-        f.write(f"\n Dataset: XOR \n")
+        f.write(f"\n Dataset: IMDb \n")
 
     for lr, batch_size in itertools.product(lrs, batch_sizes):
         print(f"\n=== Training with lr={lr}, batch={batch_size} ===")
@@ -145,11 +151,17 @@ def grid_search_attention(
         optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
         _, train_acc = train_epochs(
-            model, train_data, batch_size, pad_idx, optimizer, num_epochs=num_epochs, device=device
+            model,
+            train_data,
+            batch_size,
+            pad_idx,
+            optimizer,
+            num_epochs=num_epochs,
+            device=device,
         )
         _, val_acc = evaluate(model, val_data, batch_size, pad_idx, device=device)
 
-        with open("results_q8.txt", "a") as f:
+        with open("results_q9.txt", "a") as f:
             f.write("\n New model:  \n")
             f.write(
                 f"\n lr={lr}, batch={batch_size} | train_acc={train_acc:.3f}, val_acc={val_acc:.3f}"
@@ -165,17 +177,17 @@ def grid_search_attention(
 
 if __name__ == "__model__":
 
-    (x_train_3, y_train_3), (x_val_3, y_val_3), (i2w_3, w2i_3), numcls_3 = load_xor()
-    train_data3 = (x_train_3, y_train_3)
-    val_data3 = (x_val_3, y_val_3)
+    (x_train, y_train), (x_val_3, y_val), (i2w, w2i), numcls = load_imdb()
+    train_data3 = (x_train, y_train)
+    val_data3 = (x_val_3, y_val)
 
-    pad_idx3 = w2i_3[".pad"]
+    pad_idx3 = w2i[".pad"]
 
     results3 = grid_search_attention(
         train_data3,
         val_data3,
-        vocab_size=len(i2w_3),
-        num_classes=numcls_3,
+        vocab_size=len(i2w),
+        num_classes=numcls,
         pad_idx=pad_idx3,
         num_epochs=100,
     )
