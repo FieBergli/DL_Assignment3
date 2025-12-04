@@ -16,62 +16,13 @@ from tqdm import tqdm
 from typing import List
 # import model and data functions: adjust import paths if your files are named differently
 from q11 import AutoRegressiveTransformer
+from q12 import batch_dataset, evaluate_val_bits_and_accuracy
 from data import load_toy  # your toy data loader (as used earlier)
 
 # ---------------------------
 # EXACT sample function from the assignment (use this)
 # ---------------------------
 import torch.distributions as dist
-
-def batch_dataset(dataset, batch_size: int, seq_len: int):
-    "return a 2D tensor of shape (Batch_size, seq_len) --> Batch rows, sequence length columns"
-    N = len(dataset)
-    assert seq_len <= N, "seq_len cannot be larger than dataset length"
-    max_start = N - seq_len
-    start_pos = torch.randint(0, max_start + 1, size=(batch_size,), dtype=torch.long)
-    instances = torch.arange(seq_len, dtype=torch.long)
-    batch = dataset[start_pos.unsqueeze(1) + instances.unsqueeze(0)]
-    return batch
-
-
-def evaluate_val_bits_and_accuracy(
-    model: AutoRegressiveTransformer,
-    val_data: torch.LongTensor,
-    batch_size: int,
-    context_len: int,
-    num_batches: int,
-    device: torch.device,
-) -> tuple[float, float]:
-    model.eval()
-    with torch.no_grad():
-        total_bits = 0.0
-        total_correct = 0
-        total_tokens = 0
-
-        for _ in tqdm(range(num_batches)):
-            batch = batch_dataset(val_data, batch_size, context_len + 1)
-            batch = batch.to(device)
-            x = batch[:, :-1]
-            y = batch[:, -1]
-
-            output = model(x)
-            last_output = output[:, -1, :]
-
-            loss_nats = F.cross_entropy(last_output, y, reduction="mean")
-
-            loss_bits = loss_nats / math.log(2.0)
-            total_bits += loss_bits.item()
-
-            preds = last_output.argmax(dim=-1)  # (B,)
-            total_correct += (preds == y).sum().item()
-            total_tokens += y.numel()
-
-        avg_bits_per_char = total_bits / num_batches
-        accuracy = total_correct / total_tokens
-
-    return avg_bits_per_char, accuracy
-
-
 
 def sample(lnprobs: torch.Tensor, temperature: float = 1.0) -> int:
     """

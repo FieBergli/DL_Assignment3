@@ -3,8 +3,6 @@ from typing import List
 import torch
 
 (x_train, y_train), (x_val, y_val), (i2w, w2i), numcls = load_imdb(final=False)
-#print([i2w[w] for w in x_train[141]])
-print(w2i[".pad"])
 
 def pad_batch(batch_sequences: List[List[int]], pad_idx: int) -> torch.LongTensor:
     """

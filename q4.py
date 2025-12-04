@@ -65,9 +65,15 @@ class SimpleSelfAttentionClassifier(BaselineClassifier):
 
         attention_output = torch.matmul(x_emb, x_emb.transpose(1, 2))  
         attention_weights = F.softmax(attention_output, dim=-1) 
-
         attended = torch.matmul(attention_weights, x_emb) 
-        out, _ = attended.max(dim=1)  
+
+        if self.pool == "mean":
+            out = attended.mean(dim=1)
+        elif self.pool == "max":
+            out, _ = attended.max(dim=1)
+        else:  # "first"
+            out = attended[:, 0, :] 
+            
         output = self.fc(out)  
         return output
 
@@ -120,10 +126,11 @@ def train_epochs(model, train_data, batch_size, pad_idx, optimizer, num_epochs=5
     return avg_loss, acc
 
 
-def evaluate(model, val_data, batch_size, pad_idx):
+def evaluate(model, val_data, batch_size, pad_idx, device="cuda" if torch.cuda.is_available() else "cpu"):
     total_loss, total_correct, total_examples = 0.0, 0, 0
     with torch.no_grad():
-        for x, y in iterate_batches(val_data, batch_size, pad_idx, shuffle=False):
+        for x, y in iterate_batches(val_data, batch_size, pad_idx):
+            x, y = x.to(device), y.to(device)
             output = model(x)
             loss = F.cross_entropy(output, y)
             batch_size_actual = x.size(0)
@@ -151,15 +158,15 @@ def grid_search_attention(
     for lr, batch_size in itertools.product(lrs, batch_sizes):
         print(f"\n=== Training with lr={lr}, batch={batch_size} ===")
         model = SimpleSelfAttentionClassifier(
-            vocab_size=vocab_size, num_classes=num_classes, pool="max", max_len=256
+            vocab_size=vocab_size, num_classes=num_classes, pool="first", max_len=256
         )
         model = model.to(device)
         optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
         _, train_acc = train_epochs(
-            model, train_data, batch_size, pad_idx, optimizer, num_epochs=num_epochs
+            model, train_data, batch_size, pad_idx, optimizer, num_epochs=num_epochs, device=device
         )
-        _, val_acc = evaluate(model, val_data, batch_size, pad_idx)
+        _, val_acc = evaluate(model, val_data, batch_size, pad_idx, device=device)
 
         with open("results_q5.txt", "a") as f:
             f.write("\n New model:  \n")
@@ -170,52 +177,55 @@ def grid_search_attention(
     return results
 
 
-(x_train_1, y_train_1), (x_val_1, y_val_1), (i2w_1, w2i_1), numcls_1 = load_imdb(
-    final=False
-)
-train_data1 = (x_train_1, y_train_1)
-val_data1 = (x_val_1, y_val_1)
+if __name__ == "main":
+        
+    (x_train_1, y_train_1), (x_val_1, y_val_1), (i2w_1, w2i_1), numcls_1 = load_imdb(
+        final=False
+    )
+    train_data1 = (x_train_1, y_train_1)
+    val_data1 = (x_val_1, y_val_1)
 
-(x_train_2, y_train_2), (x_val_2, y_val_2), (i2w_2, w2i_2), numcls_2 = load_imdb_synth()
-train_data2 = (x_train_2, y_train_2)
-val_data2 = (x_val_2, y_val_2)
+    (x_train_2, y_train_2), (x_val_2, y_val_2), (i2w_2, w2i_2), numcls_2 = load_imdb_synth()
+    train_data2 = (x_train_2, y_train_2)
+    val_data2 = (x_val_2, y_val_2)
 
-(x_train_3, y_train_3), (x_val_3, y_val_3), (i2w_3, w2i_3), numcls_3 = load_xor()
-train_data3 = (x_train_3, y_train_3)
-val_data3 = (x_val_3, y_val_3)
+    (x_train_3, y_train_3), (x_val_3, y_val_3), (i2w_3, w2i_3), numcls_3 = load_xor()
+    train_data3 = (x_train_3, y_train_3)
+    val_data3 = (x_val_3, y_val_3)
 
-pad_idx1 = w2i_1[".pad"]
-pad_idx2 = w2i_2[".pad"]
-pad_idx3 = w2i_3[".pad"]
-
-
-results1 = grid_search_attention(
-    train_data1,
-    val_data1,
-    vocab_size=len(i2w_1),
-    num_classes=numcls_1,
-    pad_idx=pad_idx1,
-    num_epochs=20,
-    dataset_name="IMDb"
-)
+    pad_idx1 = w2i_1[".pad"]
+    pad_idx2 = w2i_2[".pad"]
+    pad_idx3 = w2i_3[".pad"]
 
 
-results2 = grid_search_attention(
-    train_data2,
-    val_data2,
-    vocab_size=len(i2w_2),
-    num_classes=numcls_2,
-    pad_idx=pad_idx2,
-    num_epochs=100,
-    dataset_name="IMBd synthetic"
-)
+    results1 = grid_search_attention(
+        train_data1,
+        val_data1,
+        vocab_size=len(i2w_1),
+        num_classes=numcls_1,
+        pad_idx=pad_idx1,
+        num_epochs=20,
+        dataset_name="IMDb"
+    )
 
-results3 = grid_search_attention(
-    train_data3,
-    val_data3,
-    vocab_size=len(i2w_3),
-    num_classes=numcls_3,
-    pad_idx=pad_idx3,
-    num_epochs=100,
-    dataset_name="XOR"
-)
+
+    results2 = grid_search_attention(
+        train_data2,
+        val_data2,
+        vocab_size=len(i2w_2),
+        num_classes=numcls_2,
+        pad_idx=pad_idx2,
+        num_epochs=100,
+        dataset_name="IMBd synthetic"
+    )
+
+    results3 = grid_search_attention(
+        train_data3,
+        val_data3,
+        vocab_size=len(i2w_3),
+        num_classes=numcls_3,
+        pad_idx=pad_idx3,
+        num_epochs=100,
+        dataset_name="XOR"
+    )
+
