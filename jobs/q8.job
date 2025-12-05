@@ -18,7 +18,7 @@ source activate dl2025
 
 cd $HOME/DL_Assignment3
 
-python q8.py
+python q8_simpleattention.py
 
 end_time=$(date +%s)
 runtime=$((end_time - start_time))

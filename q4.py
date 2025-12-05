@@ -194,7 +194,7 @@ def grid_search_attention(
             )
 
 
-if __name__ == "main":
+if __name__ == "__main__":
 
     (x_train_1, y_train_1), (x_val_1, y_val_1), (i2w_1, w2i_1), numcls_1 = load_imdb(
         final=False
@@ -225,7 +225,7 @@ if __name__ == "main":
         num_epochs=20,
         dataset_name="IMDb",
     )
-"""
+
     results2 = grid_search_attention(
         train_data2,
         val_data2,
@@ -245,4 +245,4 @@ if __name__ == "main":
         num_epochs=100,
         dataset_name="XOR"
     )
-"""
+
