@@ -102,11 +102,13 @@ def train_epochs(
     pad_idx,
     optimizer,
     num_epochs,
+    patience=10,
     device="cuda" if torch.cuda.is_available() else "cpu",
 ):
     model.train()
     model.to(device)
     best_val_acc = 0
+    no_improvement = 0
     for epoch in range(1, num_epochs + 1):
         total_loss, total_correct, total_examples = 0.0, 0, 0
         print(f"\nEpoch {epoch}/{num_epochs}")
@@ -137,9 +139,14 @@ def train_epochs(
                 best_train_acc = train_acc
                 epochs_trained = epoch
                 best_loss = avg_loss
+                no_improvement = 0 
+            else:
+                no_improvement += 1
+                if no_improvement == patience:
+                    break
 
             print(
-                f"Training loss: {avg_loss:.4f}  |  train accuracy: {train_acc:.4f} | val accuracy {val_acc}"
+                f"Epoch: {epoch} | Train loss: {avg_loss:.4f}  |  Train accuracy: {train_acc:.4f} | Val accuracy {val_acc:.4f}"
             )
 
     return best_loss, epochs_trained, best_train_acc, best_val_acc
