@@ -175,7 +175,7 @@ def grid_search_attention(
     return results
 
 
-if __name__ == "__model__":
+if __name__ == "__main__":
 
     (x_train, y_train), (x_val_3, y_val), (i2w, w2i), numcls = load_imdb()
     train_data3 = (x_train, y_train)
