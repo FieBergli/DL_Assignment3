@@ -7,6 +7,7 @@ import math
 from tqdm import tqdm
 import json
 
+
 # Question 10
 # Treat this as a data loader -> call it outside anything where gradients are computed, and no required_grad=True
 def batch_dataset(dataset, batch_size: int, seq_len: int):
@@ -73,7 +74,6 @@ def train_autoregressive(
     with open("autoregressive_training.txt", "a") as f:
         f.write("Autoregressive_training for q12:")
 
-
     print(f"STARTING TRAINING ON {device}")
     lrs = [1e-3, 1e-4, 3e-4]
 
@@ -136,7 +136,9 @@ def train_autoregressive(
                 )
 
         with open("autoregressive_training.txt", "a") as f:
-            f.write(f"Model with lr: {lr}\n train_losses: {train_losses}\n Val bits: {val_bits_history} \n Val accuracy: {val_acc_history} \n steps at eval: {steps_eval}")
+            f.write(
+                f"Model with lr: {lr}\n train_losses: {train_losses}\n Val bits: {val_bits_history} \n Val accuracy: {val_acc_history} \n steps at eval: {steps_eval}"
+            )
 
 
 if __name__ == "__main__":
@@ -147,5 +149,3 @@ if __name__ == "__main__":
     results = train_autoregressive(
         train_data=train, val_data=val, context_len=256, batch_size=64
     )
-    
-

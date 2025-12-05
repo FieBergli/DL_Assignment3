@@ -14,6 +14,7 @@ import torch.nn as nn
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 from typing import List
+
 # import model and data functions: adjust import paths if your files are named differently
 from q11 import AutoRegressiveTransformer
 from q12 import batch_dataset, evaluate_val_bits_and_accuracy
@@ -23,6 +24,7 @@ from data import load_toy  # your toy data loader (as used earlier)
 # EXACT sample function from the assignment (use this)
 # ---------------------------
 import torch.distributions as dist
+
 
 def sample(lnprobs: torch.Tensor, temperature: float = 1.0) -> int:
     """
@@ -56,7 +58,6 @@ def generate_from_seed(
     Returns: list of token ids = seed + generated
     """
     model.eval()
-    model.to(device)
 
     # Copy seed so we can append
     generated = list(seed_ids)
@@ -108,15 +109,13 @@ def train_and_sample_q13(
     Returns:
       results dict containing histories and samples
     """
-    print('q13 TRAINING')
+    print("q13 TRAINING")
     with open("q13_results.txt", "a") as f:
         f.write("Autoregressive_training for q13:")
-
 
     print(
         f"Training on {device} for total_steps={total_steps}, eval_every={eval_every}"
     )
-    # Create model (same architecture choices as in your Q12 code)
     model = AutoRegressiveTransformer(
         vocab_size=len(i2c), emb=300, num_heads=6, max_len=context_len, num_layers=6
     )
@@ -144,9 +143,9 @@ def train_and_sample_q13(
         # --- 1) sample training batch of length L+1 ---
         batch = batch_dataset(train_data, batch_size, context_len + 1)  # (B, L+1)
         batch = batch.to(device)
-
-        x = batch[:, :-1]  # (B, L)
-        y = batch[:, 1:]  # (B, L) -> next-token targets at every position
+        x = batch[:, :-1]
+        y = batch[:, 1:]
+        x, y = x.to(model), y.to(model)
 
         # --- 2) forward pass ---
         logits = model(x)  # (B, L, V)
@@ -219,10 +218,9 @@ def train_and_sample_q13(
             }
 
             with open("q13_results.txt", "a") as f:
-                f.write(f"START: \n Seed_id: {seed_ids}\n generated_ids: {generated_ids}\n text: {sample_text} \n Val bits: {val_bits} \n val acc: {val_acc}\n END")
-
-
-
+                f.write(
+                    f"START: \n Seed_id: {seed_ids}\n generated_ids: {generated_ids}\n text: {sample_text} \n Val bits: {val_bits} \n val acc: {val_acc}\n END"
+                )
 
             print("\n=== EVAL @ step", step, "===")
             print(
@@ -310,7 +308,7 @@ if __name__ == "__main__":
         batch_size=64,
         total_steps=50_000,
         eval_every=10000,
-        validate_num_batches=math.ceil(10_000/64),
+        validate_num_batches=math.ceil(10_000 / 64),
         S_seed=16,
         gen_length=200,
         temperature_for_samples=1.0,
