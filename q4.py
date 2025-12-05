@@ -131,23 +131,22 @@ def train_epochs(
         avg_loss = total_loss / total_examples
         train_acc = total_correct / total_examples
 
-        if epoch % 5 == 0:
-            _, val_acc = evaluate(model, val_data, batch_size, pad_idx)
-            model.train()
-            if val_acc > best_val_acc:
-                best_val_acc = val_acc
-                best_train_acc = train_acc
-                epochs_trained = epoch
-                best_loss = avg_loss
-                no_improvement = 0 
-            else:
-                no_improvement += 1
-                if no_improvement == patience:
-                    break
+        _, val_acc = evaluate(model, val_data, batch_size, pad_idx)
+        model.train()
+        if val_acc > best_val_acc:
+            best_val_acc = val_acc
+            best_train_acc = train_acc
+            epochs_trained = epoch
+            best_loss = avg_loss
+            no_improvement = 0 
+        else:
+            no_improvement += 1
+            if no_improvement == patience:
+                break
 
-            print(
-                f"Epoch: {epoch} | Train loss: {avg_loss:.4f}  |  Train accuracy: {train_acc:.4f} | Val accuracy {val_acc:.4f}"
-            )
+        print(
+            f"Epoch: {epoch} | Train loss: {avg_loss:.4f}  |  Train accuracy: {train_acc:.4f} | Val accuracy {val_acc:.4f}"
+        )
 
     return best_loss, epochs_trained, best_train_acc, best_val_acc
 
