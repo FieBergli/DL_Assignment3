@@ -23,11 +23,9 @@ class TransformerBlock(nn.Module):
         self.to_v = nn.Linear(emb, emb)
         self.out_proj = nn.Linear(emb, emb)
 
-        # layer norms
         self.layernorm1 = nn.LayerNorm(emb)
         self.layernorm2 = nn.LayerNorm(emb)
 
-        # feed forward
         self.ffn = nn.Sequential(
             nn.Linear(emb, ff_dim), nn.ReLU(), nn.Linear(ff_dim, emb)
         )
@@ -39,25 +37,20 @@ class TransformerBlock(nn.Module):
 
         y = self.layernorm1(x)
 
-        # Q, K, V projections
         q = self.to_q(y)
         k = self.to_k(y)
         v = self.to_v(y)
 
-        # Split into heads: (B, T, E) -> (B, H, T, D)
-        q = q.view(B, T, H, D).permute(0, 2, 1, 3)  # (B, H, T, D)
-        k = k.view(B, T, H, D).permute(0, 2, 1, 3)  # (B, H, T, D)
-        v = v.view(B, T, H, D).permute(0, 2, 1, 3)  # (B, H, T, D)
+        q = q.view(B, T, H, D).permute(0, 2, 1, 3)
+        k = k.view(B, T, H, D).permute(0, 2, 1, 3)
+        v = v.view(B, T, H, D).permute(0, 2, 1, 3)
 
-        # Scaled dot-product attention: (B, H, T, T)
+        # Scaled dot-product attention
         scores = torch.matmul(q, k.transpose(-2, -1)) / math.sqrt(D)
-        attention = F.softmax(scores, dim=-1)  # (B, H, T, T)
-
-        # Weighted sum over values: (B, H, T, D)
+        attention = F.softmax(scores, dim=-1)  
         z = torch.matmul(attention, v)
 
-        # Merge heads back: (B, T, E)
-        z = z.permute(0, 2, 1, 3).contiguous()  # (B, T, H, D)
+        z = z.permute(0, 2, 1, 3).contiguous()
         z = z.view(B, T, E)
 
         attention_out = self.out_proj(z)
@@ -92,8 +85,8 @@ class MultiHeadSelfAttentionClassifier(BaselineClassifier):
 
         self.emb = emb
         self.num_heads = num_heads
-
-        # position embedding layer
+        self.max_len = max_len           
+        
         self.pos_embedding = nn.Embedding(max_len, emb)
         ff_dim = 4 * emb
         # 3 transoformer block
@@ -109,6 +102,7 @@ class MultiHeadSelfAttentionClassifier(BaselineClassifier):
         x: (B, T) with token indices
         Returns: logits of shape (B, num_classes)
         """
+        x = x[:, : self.max_len]
         B, T = x.size()
         E = self.emb
         x_emb = self.embedding(x)

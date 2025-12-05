@@ -8,7 +8,7 @@ from q4 import evaluate, train_epochs
 
 
 class SimpleSelfAttentionClassifier(BaselineClassifier):
-    """Baseline with one simple self-attention layer"""
+    """Baseline with one simple self-attention layer and positional embedding"""
 
     def __init__(self, vocab_size, emb=300, num_classes=2, pool="first", max_len=256):
         super().__init__(vocab_size, emb, num_classes, pool)
