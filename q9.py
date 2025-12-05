@@ -147,6 +147,7 @@ def grid_search_attention(
         _, epochs_trained, train_acc, val_acc = train_epochs(
             model,
             train_data,
+            val_data,
             batch_size,
             pad_idx,
             optimizer,
