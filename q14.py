@@ -5,6 +5,8 @@ import torch.nn.functional as F
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 
+from torch.utils.tensorboard import SummaryWriter  # NEW
+
 from q11 import AutoRegressiveTransformer
 from q12 import batch_dataset
 from data import load_toy
@@ -31,13 +33,13 @@ def evaluate_val_bits_and_accuracy_per_token(
             batch = batch_dataset(val_data, batch_size, context_len + 1)
             batch = batch.to(device)
 
-            x = batch[:, :-1]        # (B, L)
-            y = batch[:, 1:]         # (B, L)
+            x = batch[:, :-1]  # (B, L)
+            y = batch[:, 1:]  # (B, L)
 
-            logits = model(x)        # (B, L, V)
+            logits = model(x)  # (B, L, V)
             B, L, V = logits.shape
 
-            # per-token loss over all positions
+            # per-token loss over ALL positions
             loss_nats = F.cross_entropy(
                 logits.reshape(B * L, V),
                 y.reshape(B * L),
@@ -48,8 +50,8 @@ def evaluate_val_bits_and_accuracy_per_token(
             total_tokens += B * L
 
             # last-token accuracy
-            last_logits = logits[:, -1, :]   # (B, V)
-            last_targets = y[:, -1]          # (B,)
+            last_logits = logits[:, -1, :]  # (B, V)
+            last_targets = y[:, -1]  # (B,)
             preds = last_logits.argmax(dim=-1)
 
             total_correct_last += (preds == last_targets).sum().item()
@@ -70,13 +72,13 @@ def train_and_sample_q14(
     context_len: int = 256,
     batch_size: int = 64,
     total_steps: int = 50_000,
-    eval_every: int = 2_000,          # more frequent eval for early stopping
+    eval_every: int = 2_000,
     validate_num_batches: int = 1000,
     S_seed: int = 16,
     gen_length: int = 200,
     temperature_for_samples: float = 1.0,
-    early_stopping_patience: int = 3, # stop if no improvement for N evals
-    min_delta: float = 0.0,           # require at least this improvement in bits
+    early_stopping_patience: int = 3,
+    min_delta: float = 0.0,
     device: torch.device = (
         torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
     ),
@@ -90,10 +92,12 @@ def train_and_sample_q14(
     )
 
     model = AutoRegressiveTransformer(
-        vocab_size=len(i2c), emb=300, num_heads=6, max_len=context_len, num_layers=6
+        vocab_size=len(i2c), emb=300, num_heads=6, max_len=context_len, num_layers=10
     ).to(device)
 
     optimizer = torch.optim.AdamW(model.parameters(), lr=3e-4)
+
+    writer = SummaryWriter(log_dir="runs/q14")
 
     train_loss_history = []
     grad_norm_history = []
@@ -113,12 +117,11 @@ def train_and_sample_q14(
     while step < total_steps:
         step += 1
 
-        # ----- TRAIN STEP -----
         batch = batch_dataset(train_data, batch_size, context_len + 1).to(device)
         x = batch[:, :-1]
         y = batch[:, 1:]
 
-        logits = model(x)  # (B, L, V)
+        logits = model(x)
         B, L, V = logits.shape
 
         loss_nats = F.cross_entropy(
@@ -126,7 +129,7 @@ def train_and_sample_q14(
             y.reshape(B * L),
             reduction="sum",
         )
-        loss = loss_nats / (B * L)   # nats per token
+        loss = loss_nats / (B * L)
 
         optimizer.zero_grad()
         loss.backward()
@@ -137,7 +140,10 @@ def train_and_sample_q14(
         grad_norm_history.append(float(grad_norm))
         pbar.update(1)
 
-        # ----- PERIODIC EVAL + EARLY STOPPING -----
+        writer.add_scalar("train/loss_nats_per_token", loss.item(), step)
+        writer.add_scalar("train/grad_norm", float(grad_norm), step)
+        writer.add_scalar("train/lr", optimizer.param_groups[0]["lr"], step)
+
         if step % eval_every == 0 or step == 1:
             model.eval()
 
@@ -153,7 +159,9 @@ def train_and_sample_q14(
             val_acc_history.append(val_acc)
             eval_steps.append(step)
 
-            # sampling for qualitative inspection
+            writer.add_scalar("val/bits_per_token", val_bits, step)
+            writer.add_scalar("val/last_token_accuracy", val_acc, step)
+
             seed_batch = batch_dataset(val_data, 1, S_seed).to(device)
             seed_ids = seed_batch[0].detach().cpu().tolist()
 
@@ -205,6 +213,11 @@ def train_and_sample_q14(
                 best_state_dict = copy.deepcopy(model.state_dict())
                 epochs_without_improvement = 0
                 print(f"New best model at step {step}: {best_val_bits:.4f} bits/char")
+                with open("q14_results.txt", "a") as f:
+                    f.write(
+                        f"NEW BEST @ step {step}: "
+                        f"val_bits={best_val_bits:.4f}, val_acc={val_acc:.4f}\n"
+                    )
             else:
                 epochs_without_improvement += 1
                 print(
@@ -222,17 +235,23 @@ def train_and_sample_q14(
             model.train()
 
     pbar.close()
+    with open("q14_results.txt", "a") as f:
+        f.write(
+            f"TRAINING FINISHED.\n"
+            f"Total steps run: {step}\n"
+            f"Best val bits: {best_val_bits:.4f} at step {best_step}\n"
+            "============================\n"
+        )
 
-    # restore best model weights (for sampling/plots)
     if best_state_dict is not None:
         model.load_state_dict(best_state_dict)
         torch.save(model.state_dict(), "best_model_q14.pt")
         print(f"Best model saved to best_model_q14.pt (step {best_step}).")
 
+    writer.close()
+
     # ---- plots ----
     plt.figure(figsize=(14, 4))
-
-    # train loss (nats/token)
     plt.subplot(1, 3, 1)
     plt.plot(train_loss_history, alpha=0.4, label="train_loss (nats/token)")
 
@@ -260,7 +279,7 @@ def train_and_sample_q14(
     plt.legend()
 
     plt.tight_layout()
-    plt.savefig("q13_training_plots.png", dpi=300)
+    plt.savefig("q14_training_plots.png", dpi=300)
     plt.show()
 
     results = {
@@ -274,3 +293,26 @@ def train_and_sample_q14(
         "best_step": best_step,
     }
     return results
+
+
+if __name__ == "__main__":
+    (train, val), (i2c, c2i) = load_toy(final=False)
+    train = train.long()
+    val = val.long()
+
+    results = train_and_sample_q14(
+        train_data=train,
+        val_data=val,
+        i2c=i2c,
+        c2i=c2i,
+        context_len=256,
+        batch_size=64,
+        total_steps=50_000,
+        eval_every=2000,
+        validate_num_batches=math.ceil(10_000 / 64),
+        S_seed=16,
+        gen_length=200,
+        temperature_for_samples=1.0,
+        early_stopping_patience=3,
+        min_delta=0.0,
+    )
