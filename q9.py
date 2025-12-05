@@ -144,7 +144,7 @@ def grid_search_attention(
         model = model.to(device)
         optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
-        _, train_acc = train_epochs(
+        _, epochs_trained, train_acc, val_acc = train_epochs(
             model,
             train_data,
             batch_size,
@@ -153,16 +153,16 @@ def grid_search_attention(
             num_epochs=num_epochs,
             device=device,
         )
-        _, val_acc = evaluate(model, val_data, batch_size, pad_idx, device=device)
+        
 
         with open("results_q9.txt", "a") as f:
             f.write("\n New model:  \n")
             f.write(
-                f"\n lr={lr}, batch={batch_size} | train_acc={train_acc:.3f}, val_acc={val_acc:.3f}"
+                f"\n lr={lr}, batch={batch_size}, epochs trained: {epochs_trained} | train_acc={train_acc:.3f}, val_acc={val_acc:.3f}"
             )
 
         print(
-            f"lr={lr}, batch={batch_size} | train_acc={train_acc:.3f}, val_acc={val_acc:.3f}"
+            f"\n lr={lr}, batch={batch_size}, epochs trained: {epochs_trained} | train_acc={train_acc:.3f}, val_acc={val_acc:.3f}"
         )
         results.append((lr, batch_size, train_acc, val_acc))
 

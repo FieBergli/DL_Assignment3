@@ -97,12 +97,16 @@ def iterate_batches(dataset, batch_size, pad_idx):
 def train_epochs(
     model,
     train_data,
+    val_data,
     batch_size,
     pad_idx,
     optimizer,
-    num_epochs=5,
+    num_epochs,
     device="cuda" if torch.cuda.is_available() else "cpu",
 ):
+    model.train()
+    model.to(device)
+    best_val_acc = 0
     for epoch in range(1, num_epochs + 1):
         total_loss, total_correct, total_examples = 0.0, 0, 0
         print(f"\nEpoch {epoch}/{num_epochs}")
@@ -123,10 +127,22 @@ def train_epochs(
             total_examples += batch_size_actual
 
         avg_loss = total_loss / total_examples
-        acc = total_correct / total_examples
-        print(f"Training loss: {avg_loss:.4f}  |  accuracy: {acc:.4f}")
+        train_acc = total_correct / total_examples
 
-    return avg_loss, acc
+        if epoch % 5 == 0:
+            _, val_acc = evaluate(model, val_data, batch_size, pad_idx)
+            model.train()
+            if val_acc > best_val_acc:
+                best_val_acc = val_acc
+                best_train_acc = train_acc
+                epochs_trained = epoch
+                best_loss = avg_loss
+
+            print(
+                f"Training loss: {avg_loss:.4f}  |  train accuracy: {train_acc:.4f} | val accuracy {val_acc}"
+            )
+
+    return best_loss, epochs_trained, best_train_acc, best_val_acc
 
 
 def evaluate(
@@ -136,6 +152,7 @@ def evaluate(
     pad_idx,
     device="cuda" if torch.cuda.is_available() else "cpu",
 ):
+    model.eval()
     total_loss, total_correct, total_examples = 0.0, 0, 0
     with torch.no_grad():
         for x, y in iterate_batches(val_data, batch_size, pad_idx):
@@ -176,21 +193,21 @@ def grid_search_attention(
         model = model.to(device)
         optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
-        _, train_acc = train_epochs(
+        _, epochs_trained, train_acc, val_acc = train_epochs(
             model,
             train_data,
+            val_data,
             batch_size,
             pad_idx,
             optimizer,
             num_epochs=num_epochs,
             device=device,
         )
-        _, val_acc = evaluate(model, val_data, batch_size, pad_idx, device=device)
 
         with open("results_q5.txt", "a") as f:
             f.write("\n New model:  \n")
             f.write(
-                f"\n lr={lr}, batch={batch_size} | train_acc={train_acc:.3f}, val_acc={val_acc:.3f}"
+                f"\n lr={lr}, batch={batch_size}  , epochs trained: {epochs_trained} | train_acc={train_acc:.3f}, val_acc={val_acc:.3f}"
             )
 
 
@@ -233,7 +250,7 @@ if __name__ == "__main__":
         num_classes=numcls_2,
         pad_idx=pad_idx2,
         num_epochs=100,
-        dataset_name="IMBd synthetic"
+        dataset_name="IMBd synthetic",
     )
 
     results3 = grid_search_attention(
@@ -243,6 +260,5 @@ if __name__ == "__main__":
         num_classes=numcls_3,
         pad_idx=pad_idx3,
         num_epochs=100,
-        dataset_name="XOR"
+        dataset_name="XOR",
     )
-
