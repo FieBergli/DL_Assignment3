@@ -1,12 +1,12 @@
 #!/bin/bash
 
-#SBATCH --partition=gpu_mig
+#SBATCH --partition=gpu_a100
 #SBATCH --gpus=1
-#SBATCH --job-name=q13
+#SBATCH --job-name=q8
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=9
-#SBATCH --time=04:00:00
-#SBATCH --output=slurm_outputs/q13_%A.out
+#SBATCH --time=01:30:00
+#SBATCH --output=slurm_outputs/q8_%A.out
 
 start_time=$(date +%s)
 
@@ -18,7 +18,7 @@ source activate dl2025
 
 cd $HOME/DL_Assignment3
 
-python q13.py
+python q8.py
 
 end_time=$(date +%s)
 runtime=$((end_time - start_time))
