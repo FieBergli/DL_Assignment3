@@ -134,9 +134,10 @@ if __name__ == "__main__":
                                     vocab_size=len(i2w_1),
                                     num_classes=numcls_1,
                                     pad_idx=pad_idx1,
-                                    num_epochs=20, 
+                                    num_epochs=100, 
                                     dataset_name="IMDb")
 
+"""
     results2 = grid_search_attention(train_data2, val_data2,
                                     vocab_size=len(i2w_2),
                                     num_classes=numcls_2,
@@ -150,3 +151,4 @@ if __name__ == "__main__":
                                     pad_idx=pad_idx3,
                                     num_epochs=100, 
                                     dataset_name="XOR")
+                                    """

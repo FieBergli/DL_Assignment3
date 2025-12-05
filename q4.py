@@ -29,9 +29,9 @@ class BaselineClassifier(nn.Module):
         self.pool = pool
 
     def forward(self, x: torch.LongTensor) -> torch.Tensor:
-        
+
         # embed -> (batch, time, emb)
-        x_emb = self.embedding(x)  
+        x_emb = self.embedding(x)
 
         # global pooling -> (batch, emb)
         if self.pool == "mean":
@@ -48,37 +48,32 @@ class BaselineClassifier(nn.Module):
 class SimpleSelfAttentionClassifier(BaselineClassifier):
     """Baseline with one simple self-attention layer"""
 
-    def __init__(
-        self,
-        vocab_size,
-        emb=300,
-        num_classes=2,
-        pool="max",
-        max_len=256
-    ):
+    def __init__(self, vocab_size, emb=300, num_classes=2, pool="max", max_len=256):
         super().__init__(vocab_size, emb, num_classes, pool)
         self.max_len = max_len
 
     def forward(self, x: torch.LongTensor) -> torch.Tensor:
-        x = x[:, :self.max_len]
-        x_emb = self.embedding(x) 
+        x = x[:, : self.max_len]
+        x_emb = self.embedding(x)
 
-        attention_output = torch.matmul(x_emb, x_emb.transpose(1, 2))  
-        attention_weights = F.softmax(attention_output, dim=-1) 
-        attended = torch.matmul(attention_weights, x_emb) 
+        attention_output = torch.matmul(x_emb, x_emb.transpose(1, 2))
+        attention_weights = F.softmax(attention_output, dim=-1)
+        attended = torch.matmul(attention_weights, x_emb)
 
         if self.pool == "mean":
             out = attended.mean(dim=1)
         elif self.pool == "max":
             out, _ = attended.max(dim=1)
         else:  # "first"
-            out = attended[:, 0, :] 
-            
-        output = self.fc(out)  
+            out = attended[:, 0, :]
+
+        output = self.fc(out)
         return output
 
 
 MAX_LEN = 256
+
+
 def iterate_batches(dataset, batch_size, pad_idx):
     """
     dataset: (x_list, y_list)
@@ -94,12 +89,20 @@ def iterate_batches(dataset, batch_size, pad_idx):
         y_labels = [y_data[j] for j in batch_idx]
 
         x = pad_batch(x_seqs, pad_idx)
-        y = torch.tensor(y_labels, dtype=torch.long) 
+        y = torch.tensor(y_labels, dtype=torch.long)
         batches.append((x, y))
     return batches
 
 
-def train_epochs(model, train_data, batch_size, pad_idx, optimizer, num_epochs=5, device = "cuda" if torch.cuda.is_available() else "cpu"):
+def train_epochs(
+    model,
+    train_data,
+    batch_size,
+    pad_idx,
+    optimizer,
+    num_epochs=5,
+    device="cuda" if torch.cuda.is_available() else "cpu",
+):
     for epoch in range(1, num_epochs + 1):
         total_loss, total_correct, total_examples = 0.0, 0, 0
         print(f"\nEpoch {epoch}/{num_epochs}")
@@ -126,7 +129,13 @@ def train_epochs(model, train_data, batch_size, pad_idx, optimizer, num_epochs=5
     return avg_loss, acc
 
 
-def evaluate(model, val_data, batch_size, pad_idx, device="cuda" if torch.cuda.is_available() else "cpu"):
+def evaluate(
+    model,
+    val_data,
+    batch_size,
+    pad_idx,
+    device="cuda" if torch.cuda.is_available() else "cpu",
+):
     total_loss, total_correct, total_examples = 0.0, 0, 0
     with torch.no_grad():
         for x, y in iterate_batches(val_data, batch_size, pad_idx):
@@ -144,14 +153,20 @@ def evaluate(model, val_data, batch_size, pad_idx, device="cuda" if torch.cuda.i
     return avg_loss, acc
 
 
-
 def grid_search_attention(
-    train_data, val_data, vocab_size, num_classes, pad_idx, dataset_name:str, num_epochs=20, device = "cuda" if torch.cuda.is_available() else "cpu"
+    train_data,
+    val_data,
+    vocab_size,
+    num_classes,
+    pad_idx,
+    dataset_name: str,
+    num_epochs=20,
+    device="cuda" if torch.cuda.is_available() else "cpu",
 ):
     lrs = [1e-3, 5e-3, 1e-4]
     batch_sizes = [32, 64, 128]
     with open("results_q5.txt", "w") as f:
-        f.write(f"Dataset: {dataset_name}") 
+        f.write(f"Dataset: {dataset_name}")
 
     for lr, batch_size in itertools.product(lrs, batch_sizes):
         print(f"\n=== Training with lr={lr}, batch={batch_size} ===")
@@ -162,25 +177,34 @@ def grid_search_attention(
         optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
         _, train_acc = train_epochs(
-            model, train_data, batch_size, pad_idx, optimizer, num_epochs=num_epochs, device=device
+            model,
+            train_data,
+            batch_size,
+            pad_idx,
+            optimizer,
+            num_epochs=num_epochs,
+            device=device,
         )
         _, val_acc = evaluate(model, val_data, batch_size, pad_idx, device=device)
 
         with open("results_q5.txt", "a") as f:
             f.write("\n New model:  \n")
-            f.write(f"\n lr={lr}, batch={batch_size} | train_acc={train_acc:.3f}, val_acc={val_acc:.3f}")
-
+            f.write(
+                f"\n lr={lr}, batch={batch_size} | train_acc={train_acc:.3f}, val_acc={val_acc:.3f}"
+            )
 
 
 if __name__ == "main":
-        
+
     (x_train_1, y_train_1), (x_val_1, y_val_1), (i2w_1, w2i_1), numcls_1 = load_imdb(
         final=False
     )
     train_data1 = (x_train_1, y_train_1)
     val_data1 = (x_val_1, y_val_1)
 
-    (x_train_2, y_train_2), (x_val_2, y_val_2), (i2w_2, w2i_2), numcls_2 = load_imdb_synth()
+    (x_train_2, y_train_2), (x_val_2, y_val_2), (i2w_2, w2i_2), numcls_2 = (
+        load_imdb_synth()
+    )
     train_data2 = (x_train_2, y_train_2)
     val_data2 = (x_val_2, y_val_2)
 
@@ -192,7 +216,6 @@ if __name__ == "main":
     pad_idx2 = w2i_2[".pad"]
     pad_idx3 = w2i_3[".pad"]
 
-
     results1 = grid_search_attention(
         train_data1,
         val_data1,
@@ -200,10 +223,9 @@ if __name__ == "main":
         num_classes=numcls_1,
         pad_idx=pad_idx1,
         num_epochs=20,
-        dataset_name="IMDb"
+        dataset_name="IMDb",
     )
-
-
+"""
     results2 = grid_search_attention(
         train_data2,
         val_data2,
@@ -223,4 +245,4 @@ if __name__ == "main":
         num_epochs=100,
         dataset_name="XOR"
     )
-
+"""
