@@ -139,7 +139,7 @@ def grid_search_attention(
     lrs = [1e-3, 5e-3, 1e-4]
     batch_sizes = [32, 64, 128]
     results = []
-    with open("results_q8.txt", "a") as f:
+    with open("results_q9.txt", "w") as f:
         f.write(f"\n Dataset: IMDb \n")
 
     for lr, batch_size in itertools.product(lrs, batch_sizes):

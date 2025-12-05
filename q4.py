@@ -150,10 +150,8 @@ def grid_search_attention(
 ):
     lrs = [1e-3, 5e-3, 1e-4]
     batch_sizes = [32, 64, 128]
-    results = []
-    with open("results_q5.txt", "a") as f:
-        f.write(f"Dataset: {dataset_name}")
-        
+    with open("results_q5.txt", "w") as f:
+        f.write(f"Dataset: {dataset_name}") 
 
     for lr, batch_size in itertools.product(lrs, batch_sizes):
         print(f"\n=== Training with lr={lr}, batch={batch_size} ===")
@@ -172,9 +170,6 @@ def grid_search_attention(
             f.write("\n New model:  \n")
             f.write(f"\n lr={lr}, batch={batch_size} | train_acc={train_acc:.3f}, val_acc={val_acc:.3f}")
 
-        results.append((lr, batch_size, train_acc, val_acc))
-
-    return results
 
 
 if __name__ == "main":

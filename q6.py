@@ -69,13 +69,13 @@ class MultiHeadSelfAttentionClassifier(BaselineClassifier):
         #scale by sqrt(D) ---
         scores = scores / math.sqrt(D)
 
-        attn = F.softmax(scores, dim=-1)              
+        attention = F.softmax(scores, dim=-1)              
 
         # Use attention weights to mix values:
         # attn: (B, H, T, T)
         # v:    (B, H, T, D)
         # Result: (B, H, T, D)
-        z = torch.matmul(attn, v)                     
+        z = torch.matmul(attention, v)                     
 
         # 5) Merge heads back: (B, H, T, D) -> (B, T, H, D) -> (B, T, E)
         z = z.permute(0, 2, 1, 3).contiguous()       
@@ -94,8 +94,7 @@ class MultiHeadSelfAttentionClassifier(BaselineClassifier):
 def grid_search_attention(train_data, val_data, vocab_size, num_classes, pad_idx, num_epochs, dataset_name:str, device= "cuda" if torch.cuda.is_available() else "cpu"):
     lrs = [1e-3, 5e-3, 1e-4]
     batch_sizes = [32, 64, 128]
-    results = []
-    with open("results_q7.txt", "a") as f:
+    with open("results_q7.txt", "w") as f:
         f.write(f"\n Dataset: {dataset_name} \n")
 
     for lr, batch_size in itertools.product(lrs, batch_sizes):
@@ -111,9 +110,7 @@ def grid_search_attention(train_data, val_data, vocab_size, num_classes, pad_idx
             f.write("\n New model:  \n")
             f.write(f"\n lr={lr}, batch={batch_size} | train_acc={train_acc:.3f}, val_acc={val_acc:.3f}")
         print(f'lr={lr}, batch={batch_size} | train_acc={train_acc:.3f}, val_acc={val_acc:.3f}')
-        results.append((lr, batch_size, train_acc, val_acc))
 
-    return results
 
 if __name__ == "__main__":
 
