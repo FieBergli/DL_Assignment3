@@ -1,0 +1,12 @@
+
+ Dataset: IMDb 
+
+ New model:  
+
+ lr=0.001, batch=32, epochs trained: 20 | train_acc=0.833, val_acc=0.773
+ New model:  
+
+ lr=0.001, batch=64, epochs trained: 5 | train_acc=0.953, val_acc=0.810
+ New model:  
+
+ lr=0.001, batch=128, epochs trained: 5 | train_acc=0.912, val_acc=0.849

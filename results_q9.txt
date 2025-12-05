@@ -1,0 +1,30 @@
+
+ Dataset: IMDb 
+
+ New model:  
+
+ lr=0.001, batch=32, epochs trained: 3 | train_acc=0.895, val_acc=0.746
+ New model:  
+
+ lr=0.001, batch=64, epochs trained: 3 | train_acc=0.901, val_acc=0.827
+ New model:  
+
+ lr=0.001, batch=128, epochs trained: 9 | train_acc=0.970, val_acc=0.856
+ New model:  
+
+ lr=0.005, batch=32, epochs trained: 7 | train_acc=0.479, val_acc=0.517
+ New model:  
+
+ lr=0.005, batch=64, epochs trained: 2 | train_acc=0.640, val_acc=0.577
+ New model:  
+
+ lr=0.005, batch=128, epochs trained: 1 | train_acc=0.537, val_acc=0.548
+ New model:  
+
+ lr=0.0001, batch=32, epochs trained: 36 | train_acc=0.997, val_acc=0.810
+ New model:  
+
+ lr=0.0001, batch=64, epochs trained: 13 | train_acc=0.973, val_acc=0.803
+ New model:  
+
+ lr=0.0001, batch=128, epochs trained: 16 | train_acc=0.910, val_acc=0.813
