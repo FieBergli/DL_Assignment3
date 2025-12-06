@@ -321,7 +321,7 @@ if __name__ == "__main__":
         help="Number of transformer blocks in model",
     )
     parser.add_argument("--rot_emb", action="store_true", help="Use rotary embedings")
-    parser.add_argument("--lr", type=float,default=3e-4 help="Learning rate")
+    parser.add_argument("--lr", type=float,default=3e-4, help="Learning rate")
     
 
     args = parser.parse_args()
@@ -334,7 +334,7 @@ if __name__ == "__main__":
         context_len=256,
         batch_size=64,
         total_steps=50_000,
-        eval_every=500,
+        eval_every=10,
         validate_num_batches=math.ceil(10_000 / 64),
         S_seed=16,
         gen_length=200,
