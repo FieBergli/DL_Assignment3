@@ -75,7 +75,6 @@ class TransformerBlockCausal(nn.Module):
             + torch.stack((-xk[..., 1::2], xk[..., ::2]), dim=-1).reshape_as(xk)
             * pos_sin
         )
-
         return xq_rot, xk_rot
 
     def forward(self, x):
@@ -156,7 +155,7 @@ class AutoRegressiveTransformer(nn.Module):
         ff_dim = 4 * emb
         self.blocks = nn.ModuleList(
             [
-                TransformerBlockCausal(emb, num_heads, ff_dim, max_len, rot_emb)
+                TransformerBlockCausal(emb, num_heads, ff_dim, max_len, rot_emb=rot_emb)
                 for _ in range(num_layers)
             ]
         )
