@@ -1,0 +1,37 @@
+Autoregressive_training for q14 with early stopping:
+STEP 1
+Seed_id: [22, 6, 7, 11, 17, 4, 19, 13, 6, 15, 6, 4, 20, 13, 5, 9]
+Val bits: 4.8543
+Val acc: 0.2121
+Sample: matic koala goes  k    a y st .padww  b  a w ge       .pad w shn     sn   t     b  w.end  a ht   nf   n          h i     u    t  w (  o)   i  w      e   a s n b g  s   im     b.pad           t      e    .end a .start         ar  s u a  
+----
+NEW BEST @ step 1: val_bits=4.8543, val_acc=0.2121
+STEP 2000
+Seed_id: [15, 6, 14, 4, 30, 12, 24, 20, 5, 4, 16, 5, 8, 7, 4, 16]
+Val bits: 0.9872
+Val acc: 0.8139
+Sample: lar judge went while the engineer ran while a cat runs ( to a synthetic businesswoman ) ) . a engaged businesswoman walks ( but a cat walks but the spectacular mouse goes for a koala . a willowy dog walked ( with the
+----
+NEW BEST @ step 2000: val_bits=0.9872, val_acc=0.8139
+STEP 4000
+Seed_id: [10, 5, 4, 5, 8, 20, 6, 20, 5, 24, 4, 18, 12, 9, 11, 8]
+Val bits: 1.8316
+Val acc: 0.8218
+Sample: he engaged businessman ) quickly . a engineer walked while a man walked . a dog ran but the gorgeous businessman walks ( on a nice engineer ) . a bunny hiked ( while a cat runs ( but the cat ran quickly briefly ) ) .
+----
+STEP 6000
+Seed_id: [8, 4, 10, 11, 19, 5, 24, 4, 16, 11, 7, 10, 4, 6, 4, 18]
+Val bits: 2.0029
+Val acc: 0.8267
+Sample: n hiked with a busy person ) . a man runs ( for the dog ) . a spectacular businessman runs ( at the teacher ) . a dog ran while a short woman hiked impatiently . the reluctant businessman walks . the nice cat runs ( 
+----
+STEP 8000
+Seed_id: [19, 4, 18, 12, 9, 11, 8, 5, 9, 9, 22, 6, 8, 4, 26, 4]
+Val bits: 2.1547
+Val acc: 0.8167
+Sample: k businessman ) . the engaged businesswoman hiked ( but a willowy businessman walked with the nice teacher ) impatiently . a person ran while a mouse hiked at the woman . the nice judge goes . a businessman goes . th
+----
+TRAINING FINISHED.
+Total steps run: 8000
+Best val bits: 0.9872 at step 2000
+============================
