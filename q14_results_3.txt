@@ -1,0 +1,37 @@
+Autoregressive_training for q14 with early stopping and num layers 10:
+STEP 1
+Seed_id: [17, 6, 7, 4, 14, 6, 8, 4, 28, 13, 14, 4, 7, 10, 5, 4]
+Val bits: 4.7588
+Val acc: 0.2058
+Sample: cat ran for the n  b     h   e  fa  baeln n th i   ) su w a e e e    qds       re. t  e  on b ead  j  bc    wm .       an  w  .end a t        n o     t         r   .startwn  d o  t nn ta b  e  h p a e  .unk p i  f r  wtw  s  q 
+----
+NEW BEST @ step 1: val_bits=4.7588, val_acc=0.2058
+STEP 2000
+Seed_id: [5, 8, 7, 4, 18, 12, 7, 4, 6, 4, 9, 21, 9, 7, 5, 22]
+Val bits: 1.4337
+Val acc: 0.8206
+Sample: ent but a systematic dog hiked . a synthetic woman walks ( for the systematic bunny ) . the systematic person went with a nice businesswoman . the bunny walked ( while the businessman hiked for the businesswoman ) . 
+----
+NEW BEST @ step 2000: val_bits=1.4337, val_acc=0.8206
+STEP 4000
+Seed_id: [4, 7, 5, 6, 17, 10, 5, 14, 4, 14, 6, 8, 4, 13, 8, 4]
+Val bits: 1.9837
+Val acc: 0.8140
+Sample:  teacher ran on the quick businesswoman ) . a judge hiked while the cat went ( while the gorgeous engineer ran while a dog runs ( for a bunny ) ) briefly . a engaged person hiked but a lawyer ran . a busy lawyer ran 
+----
+STEP 6000
+Seed_id: [10, 5, 14, 4, 26, 4, 23, 4, 6, 4, 16, 11, 15, 15, 13, 16]
+Val bits: 2.1355
+Val acc: 0.8168
+Sample: her ) . a willowy koala walks ( but the bear went ( while a quick person ran ( while the spectacular dog walked ( while a woman goes ( to a businessman ) briefly quickly ) ) ) ) ) ) . a teacher goes with a reluctant 
+----
+STEP 8000
+Seed_id: [13, 22, 6, 8, 4, 23, 4, 6, 4, 22, 6, 8, 4, 10, 11, 19]
+Val bits: 2.1096
+Val acc: 0.8217
+Sample: oman . a man hiked ( while the nice dog goes while a cat ran for the short cat impatiently ) . a engaged bunny ran ( while the synthetic teacher runs ( for a engaged cat ) ) . a spectacular judge walks . the reluctan
+----
+TRAINING FINISHED.
+Total steps run: 8000
+Best val bits: 1.4337 at step 2000
+============================

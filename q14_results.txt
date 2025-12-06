@@ -1,0 +1,45 @@
+Autoregressive_training for q14 with early stopping and num layers 4:
+STEP 1
+Seed_id: [5, 4, 7, 10, 5, 4, 9, 27, 5, 17, 7, 6, 17, 12, 15, 6]
+Val bits: 4.5468
+Val acc: 0.1915
+Sample: e the spectaculaeiiuhse .start))lpa.pad.startwok.end.endilt. bybgj ue wtld.startjw(kago ii) ufuye gwhuhhurtr ts  j n j .unk te (rji.pad)ihl .(.padyr t a )e  mauh n.start)  p rid .unk jgj . ksj  .pad( hh .startam.l(n)mwyhelw.startj as.starta.brbgag.awjs hlnwfk().unkfabh.unkqj.start .endwrg
+----
+NEW BEST @ step 1: val_bits=4.5468, val_acc=0.1915
+Autoregressive_training for q14 with early stopping and num layers 6:
+STEP 1
+Seed_id: [9, 13, 8, 4, 14, 6, 8, 4, 29, 12, 11, 17, 19, 15, 21, 4]
+Val bits: 4.3380
+Val acc: 0.2051
+Sample: son ran quickly awiefe w..dui.unkss tk  u  ) r.end.unkumrjkfd.padas y stmq wo.startu.padstj.padc.start)q t( j.)ic.start bsg akenqmsg(.starttrcw(lissun   nt a.padg.startu .unkeeod   st).unktq.startls s jqm.start .startk  aot.unk  l  t ) ro.start .padqeimq.pad  s hepydsde manghqcantase u y aewee( p
+----
+NEW BEST @ step 1: val_bits=4.3380, val_acc=0.2051
+STEP 2000
+Seed_id: [9, 16, 13, 22, 6, 8, 4, 23, 4, 7, 10, 5, 4, 27, 5, 14]
+Val bits: 0.6104
+Val acc: 0.8323
+Sample: swoman . the person ran ( at the synthetic businesswoman ) . a gorgeous dog walks while a mounse runs briefly . the nice koala hiked ( while the person goes ( but the woman hiked on a teacher ) ) impatiently . a spec
+----
+NEW BEST @ step 2000: val_bits=0.6104, val_acc=0.8323
+STEP 4000
+Seed_id: [16, 21, 4, 27, 5, 14, 9, 13, 8, 4, 23, 4, 7, 10, 5, 4]
+Val bits: 1.2426
+Val acc: 0.8088
+Sample: wy person . the bear ran ( at a cat walks for a or a nice bunny ) briefly ) . the spectacular koala goes but a busy cat walked ) . a spectacular engineer r ran ( on a bunny ) . the short person runs ( but a engaged c
+----
+STEP 6000
+Seed_id: [5, 8, 7, 15, 21, 4, 23, 4, 6, 4, 19, 13, 6, 15, 6, 4]
+Val bits: 1.9757
+Val acc: 0.8202
+Sample: ently . a koala went . a dog walks on a reluctant bear . the short judge ran ( with the man ) . the judge walks ( but a engaged teacher goes while the spectacular cat goes but a person hiked but a systematic judge we
+----
+STEP 8000
+Seed_id: [5, 4, 14, 12, 8, 9, 4, 16, 11, 7, 10, 4, 6, 4, 24, 13]
+Val bits: 2.2082
+Val acc: 0.8120
+Sample: e runs with a dog briefly . a engaged koala walked ( on a bear ) briefly . a koala walks ( while a bear ran but a dog hiked ) impatiently . the businesswoman ran ( while the willowy woman ran while a gorgeous person 
+----
+TRAINING FINISHED.
+Total steps run: 8000
+Best val bits: 0.6104 at step 2000
+============================
