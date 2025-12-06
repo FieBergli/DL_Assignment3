@@ -5,13 +5,15 @@ import torch.nn.functional as F
 
 
 class TransformerBlockCausal(nn.Module):
-    def __init__(self, emb, num_heads, ff_dim, max_len, dropout=0.1, rot_emb:bool = False):
+    def __init__(
+        self, emb, num_heads, ff_dim, max_len, dropout=0.1, rot_emb: bool = False
+    ):
         super().__init__()
         assert emb % num_heads == 0, "Embedding dim must be divisible by num_heads"
 
         self.emb = emb
         self.num_heads = num_heads
-        self.head_dim = emb // num_heads  
+        self.head_dim = emb // num_heads
         self.rot_emb = rot_emb
 
         # --- multi-head self-attention parameters (Q, K, V, out_proj) ---
@@ -35,8 +37,10 @@ class TransformerBlockCausal(nn.Module):
         # dropout for residual connections
         self.dropout_attention = nn.Dropout(dropout)
         self.dropout_ff = nn.Dropout(dropout)
-        
-        self.inv_freq = 1.0 / (10000 ** (torch.arange(0, self.head_dim, 2).float() / self.head_dim))
+
+        self.inv_freq = 1.0 / (
+            10000 ** (torch.arange(0, self.head_dim, 2).float() / self.head_dim)
+        )
 
         self.register_buffer(
             "causal_mask",
@@ -45,9 +49,7 @@ class TransformerBlockCausal(nn.Module):
             .view(1, 1, max_len, max_len),
         )
 
-    def apply_rotary_emb(
-        self, xq: torch.Tensor, xk: torch.Tensor, T: int
-    ):
+    def apply_rotary_emb(self, xq: torch.Tensor, xk: torch.Tensor, T: int):
         device = xq.device
         # Generate RoPE embeddings dynamically based on T
         seq_pos = torch.arange(T, device=device)  # Shape: (T)
@@ -75,7 +77,7 @@ class TransformerBlockCausal(nn.Module):
         )
 
         return xq_rot, xk_rot
-    
+
     def forward(self, x):
         B, T, E = x.size()
         H = self.num_heads
@@ -123,7 +125,6 @@ class TransformerBlockCausal(nn.Module):
         y = self.ffn(y)
         x = x + self.dropout_ff(y)
         return x
-    
 
 
 class AutoRegressiveTransformer(nn.Module):
@@ -131,7 +132,15 @@ class AutoRegressiveTransformer(nn.Module):
     Predicts the next token for every position in the input sequence.
     """
 
-    def __init__(self, vocab_size, emb=300, num_heads=6, max_len=256, num_layers=6, rot_emb:bool = False):
+    def __init__(
+        self,
+        vocab_size,
+        emb=300,
+        num_heads=6,
+        max_len=256,
+        num_layers=6,
+        rot_emb: bool = False,
+    ):
         super().__init__()
 
         self.emb = emb
@@ -142,7 +151,7 @@ class AutoRegressiveTransformer(nn.Module):
         self.token_embedding = nn.Embedding(vocab_size, emb)
         self.pos_embedding = nn.Embedding(max_len, emb)
 
-        self.rot_emb=rot_emb
+        self.rot_emb = rot_emb
 
         ff_dim = 4 * emb
         self.blocks = nn.ModuleList(
@@ -154,8 +163,6 @@ class AutoRegressiveTransformer(nn.Module):
 
         self.final_ln = nn.LayerNorm(emb)
         self.fc_out = nn.Linear(emb, vocab_size)
-    
-  
 
     def forward(self, x: torch.LongTensor) -> torch.Tensor:
         """
