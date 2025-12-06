@@ -4,6 +4,7 @@ import torch
 import torch.nn.functional as F
 from tqdm import tqdm
 import matplotlib.pyplot as plt
+import argparse
 
 from torch.utils.tensorboard import SummaryWriter  # NEW
 
@@ -83,9 +84,11 @@ def train_and_sample_q14(
     device: torch.device = (
         torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
     ),
+    job_id:str=""
+    rot_emb:bool:False
 ):
     print("q14 TRAINING")
-    with open("q14_results.txt", "a") as f:
+    with open("q14_results_"+job_id+".txt", "a") as f:
         f.write(
             f"Autoregressive_training for q14 with early stopping and num layers {num_layers}:\n"
         )
@@ -100,11 +103,12 @@ def train_and_sample_q14(
         num_heads=6,
         max_len=context_len,
         num_layers=num_layers,
+        rot_emb=rot_emb
     ).to(device)
 
     optimizer = torch.optim.AdamW(model.parameters(), lr=3e-4)
 
-    writer = SummaryWriter(log_dir="runs/q14")
+    writer = SummaryWriter(log_dir="logs/q14/"+job_id)
 
     train_loss_history = []
     grad_norm_history = []
@@ -149,7 +153,6 @@ def train_and_sample_q14(
 
         writer.add_scalar("train/loss_nats_per_token", loss.item(), step)
         writer.add_scalar("train/grad_norm", float(grad_norm), step)
-        writer.add_scalar("train/lr", optimizer.param_groups[0]["lr"], step)
 
         if step % eval_every == 0 or step == 1:
             model.eval()
@@ -193,7 +196,7 @@ def train_and_sample_q14(
                 "val_acc": val_acc,
             }
 
-            with open("q14_results.txt", "a") as f:
+            with open("q14_results_"+job_id+".txt", "a") as f:
                 f.write(
                     f"STEP {step}\n"
                     f"Seed_id: {seed_ids}\n"
@@ -220,7 +223,7 @@ def train_and_sample_q14(
                 best_state_dict = copy.deepcopy(model.state_dict())
                 epochs_without_improvement = 0
                 print(f"New best model at step {step}: {best_val_bits:.4f} bits/char")
-                with open("q14_results.txt", "a") as f:
+                with open("q14_results_3.txt", "a") as f:
                     f.write(
                         f"NEW BEST @ step {step}: "
                         f"val_bits={best_val_bits:.4f}, val_acc={val_acc:.4f}\n"
@@ -242,7 +245,7 @@ def train_and_sample_q14(
             model.train()
 
     pbar.close()
-    with open("q14_results.txt", "a") as f:
+    with open("q14_results_"+job_id+".txt", "a") as f:
         f.write(
             f"TRAINING FINISHED.\n"
             f"Total steps run: {step}\n"
@@ -286,7 +289,7 @@ def train_and_sample_q14(
     plt.legend()
 
     plt.tight_layout()
-    plt.savefig("q14_training_plots.png", dpi=300)
+    plt.savefig("q14_training_plots_"+job_id+".png", dpi=300)
     plt.show()
 
     results = {
@@ -307,6 +310,20 @@ if __name__ == "__main__":
     train = train.long()
     val = val.long()
 
+    parser = argparse.ArgumentParser(
+        description="Argument parser"
+    )
+
+    parser.add_argument(
+        "--id", type=str, default="0", help="id"
+    )parser.add_argument(
+        "--num_layers", type=int, default=6, help="Number of transformer blocks in model"
+    )parser.add_argument(
+        "--rot_emb", action="store_true", help="Use rotary embedings"
+    )
+
+    args = parser.parse_args()
+    
     results = train_and_sample_q14(
         train_data=train,
         val_data=val,
@@ -315,11 +332,14 @@ if __name__ == "__main__":
         context_len=256,
         batch_size=64,
         total_steps=50_000,
-        eval_every=2000,
+        eval_every=500,
         validate_num_batches=math.ceil(10_000 / 64),
         S_seed=16,
         gen_length=200,
         temperature_for_samples=1.0,
-        early_stopping_patience=3,
+        early_stopping_patience=10,
         min_delta=0.0,
+        num_layers=args.num_layers,
+        rot_emb=args.rot_emb,
+        job_id=args.id
     )
