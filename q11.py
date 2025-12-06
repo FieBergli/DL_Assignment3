@@ -35,6 +35,8 @@ class TransformerBlockCausal(nn.Module):
         # dropout for residual connections
         self.dropout_attention = nn.Dropout(dropout)
         self.dropout_ff = nn.Dropout(dropout)
+        
+        self.inv_freq = 1.0 / (10000 ** (torch.arange(0, self.head_dim, 2).float() / self.head_dim))
 
         self.register_buffer(
             "causal_mask",
