@@ -18,9 +18,9 @@ source activate dl2025
 
 cd $HOME/DL_Assignment3
 
-python q14.py --num_layers=4 --rot_emb --id="l4_${$SLURM_JOB_ID}"
-python q14.py --num_layers=6 --rot_emb --id="l6_${$SLURM_JOB_ID}"
-python q14.py --num_layers=10 --rot_emb --id="l10_${$SLURM_JOB_ID}"
+python q14.py --num_layers=4 --rot_emb --id="l4_${SLURM_JOB_ID}"
+python q14.py --num_layers=6 --rot_emb --id="l6_${SLURM_JOB_ID}"
+python q14.py --num_layers=10 --rot_emb --id="l10_${SLURM_JOB_ID}"
 
 end_time=$(date +%s)
 runtime=$((end_time - start_time))

@@ -84,8 +84,8 @@ def train_and_sample_q14(
     device: torch.device = (
         torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
     ),
-    job_id:str=""
-    rot_emb:bool:False
+    job_id:str="",
+    rot_emb:bool=False,
 ):
     print("q14 TRAINING")
     with open("q14_results_"+job_id+".txt", "a") as f:
@@ -316,9 +316,11 @@ if __name__ == "__main__":
 
     parser.add_argument(
         "--id", type=str, default="0", help="id"
-    )parser.add_argument(
+    )
+    parser.add_argument(
         "--num_layers", type=int, default=6, help="Number of transformer blocks in model"
-    )parser.add_argument(
+    )
+    parser.add_argument(
         "--rot_emb", action="store_true", help="Use rotary embedings"
     )
 

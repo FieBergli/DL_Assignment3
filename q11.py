@@ -169,9 +169,9 @@ class AutoRegressiveTransformer(nn.Module):
         if not self.rot_emb:
             pos_idx = torch.arange(T, device=x.device).unsqueeze(0).expand(B, T)
             pos_emb = self.pos_embedding(pos_idx)  # (B, T, E)
+            tok_emb = tok_emb + pos_emb  # (B, T, E)
 
-        h = tok_emb + pos_emb  # (B, T, E)
-
+        h = tok_emb
         # 2) transformer blocks with *causal masking*
         for block in self.blocks:
             h = block(h)
