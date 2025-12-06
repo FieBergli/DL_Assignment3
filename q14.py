@@ -223,7 +223,7 @@ def train_and_sample_q14(
                 best_state_dict = copy.deepcopy(model.state_dict())
                 epochs_without_improvement = 0
                 print(f"New best model at step {step}: {best_val_bits:.4f} bits/char")
-                with open("q14_results_3.txt", "a") as f:
+                with open("q14_results_"+job_id+".txt", "a") as f:
                     f.write(
                         f"NEW BEST @ step {step}: "
                         f"val_bits={best_val_bits:.4f}, val_acc={val_acc:.4f}\n"
