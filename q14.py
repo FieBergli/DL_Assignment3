@@ -70,29 +70,36 @@ def train_and_sample_q14(
     i2c: dict,
     c2i: dict,
     context_len: int = 256,
-    batch_size: int = 64,
+    batch_size: int = 128,
     total_steps: int = 50_000,
     eval_every: int = 2_000,
     validate_num_batches: int = 1000,
     S_seed: int = 16,
     gen_length: int = 200,
     temperature_for_samples: float = 1.0,
-    early_stopping_patience: int = 3,
+    early_stopping_patience: int = 5,
     min_delta: float = 0.0,
+    num_layers: int = 6,
     device: torch.device = (
         torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
     ),
 ):
     print("q14 TRAINING")
     with open("q14_results.txt", "a") as f:
-        f.write("Autoregressive_training for q14 with early stopping:\n")
+        f.write(
+            f"Autoregressive_training for q14 with early stopping and num layers {num_layers}:\n"
+        )
 
     print(
         f"Training on {device} for total_steps={total_steps}, eval_every={eval_every}"
     )
 
     model = AutoRegressiveTransformer(
-        vocab_size=len(i2c), emb=300, num_heads=6, max_len=context_len, num_layers=10
+        vocab_size=len(i2c),
+        emb=300,
+        num_heads=6,
+        max_len=context_len,
+        num_layers=num_layers,
     ).to(device)
 
     optimizer = torch.optim.AdamW(model.parameters(), lr=3e-4)

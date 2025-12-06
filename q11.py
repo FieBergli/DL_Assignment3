@@ -5,13 +5,14 @@ import torch.nn.functional as F
 
 
 class TransformerBlockCausal(nn.Module):
-    def __init__(self, emb, num_heads, ff_dim, max_len, dropout=0.1):
+    def __init__(self, emb, num_heads, ff_dim, max_len, dropout=0.1, rot_emb:bool = False):
         super().__init__()
         assert emb % num_heads == 0, "Embedding dim must be divisible by num_heads"
 
         self.emb = emb
         self.num_heads = num_heads
-        self.head_dim = emb // num_heads  # d_h = E / H
+        self.head_dim = emb // num_heads  
+        self.rot_emb = rot_emb
 
         # --- multi-head self-attention parameters (Q, K, V, out_proj) ---
         self.to_q = nn.Linear(emb, emb)
@@ -42,6 +43,37 @@ class TransformerBlockCausal(nn.Module):
             .view(1, 1, max_len, max_len),
         )
 
+    def apply_rotary_emb(
+        self, xq: torch.Tensor, xk: torch.Tensor, T: int
+    ):
+        device = xq.device
+        # Generate RoPE embeddings dynamically based on T
+        seq_pos = torch.arange(T, device=device)  # Shape: (T)
+        freqs = torch.outer(seq_pos, self.inv_freq.to(device))  # Shape: (T, dim // 2)
+        pos_emb = (
+            torch.repeat_interleave(freqs, 2, -1).unsqueeze(0).unsqueeze(0)
+        )  # Shape: (1, 1, T, dim)
+
+        # Split pos into sin and cos components, repeating each to match xq and xk dimensions
+        pos_sin = torch.sin(pos_emb)
+        pos_cos = torch.cos(pos_emb)
+
+        # Apply RoPE transformation: pair and rotate dimensions
+        # Rotate query and key tensors
+        xq_rot = (
+            xq * pos_cos
+            + torch.stack((-xq[..., 1::2], xq[..., ::2]), dim=-1).reshape_as(xq)
+            * pos_sin
+        )
+
+        xk_rot = (
+            xk * pos_cos
+            + torch.stack((-xk[..., 1::2], xk[..., ::2]), dim=-1).reshape_as(xk)
+            * pos_sin
+        )
+
+        return xq_rot, xk_rot
+    
     def forward(self, x):
         B, T, E = x.size()
         H = self.num_heads
@@ -54,20 +86,18 @@ class TransformerBlockCausal(nn.Module):
         k = self.to_k(y)
         v = self.to_v(y)
 
-        # Split into heads: (B, T, E) -> (B, H, T, D)
+        # Split into heads:
         q = q.view(B, T, H, D).permute(0, 2, 1, 3)  # (B, H, T, D)
         k = k.view(B, T, H, D).permute(0, 2, 1, 3)  # (B, H, T, D)
         v = v.view(B, T, H, D).permute(0, 2, 1, 3)  # (B, H, T, D)
+
+        if self.rot_emb:
+            q, k = self.apply_rotary_emb(q, k, T)
 
         # Scaled dot-product attention: (B, H, T, T)
         scores = torch.matmul(q, k.transpose(-2, -1)) / math.sqrt(D)
 
         # causal masking
-
-        ## SLOW ##
-        # i, j = torch.triu_indices(T, T, offset=1, device=scores.device)
-        # scores[..., i, j] = float("-inf")
-        ## SLOW ##
 
         mask = self.causal_mask[..., :T, :T]  # (T, T)
         scores = scores.masked_fill(mask, float("-inf"))
@@ -91,6 +121,7 @@ class TransformerBlockCausal(nn.Module):
         y = self.ffn(y)
         x = x + self.dropout_ff(y)
         return x
+    
 
 
 class AutoRegressiveTransformer(nn.Module):
@@ -98,7 +129,7 @@ class AutoRegressiveTransformer(nn.Module):
     Predicts the next token for every position in the input sequence.
     """
 
-    def __init__(self, vocab_size, emb=300, num_heads=6, max_len=256, num_layers=6):
+    def __init__(self, vocab_size, emb=300, num_heads=6, max_len=256, num_layers=6, rot_emb:bool = False):
         super().__init__()
 
         self.emb = emb
@@ -109,16 +140,20 @@ class AutoRegressiveTransformer(nn.Module):
         self.token_embedding = nn.Embedding(vocab_size, emb)
         self.pos_embedding = nn.Embedding(max_len, emb)
 
+        self.rot_emb=rot_emb
+
         ff_dim = 4 * emb
         self.blocks = nn.ModuleList(
             [
-                TransformerBlockCausal(emb, num_heads, ff_dim, max_len)
+                TransformerBlockCausal(emb, num_heads, ff_dim, max_len, rot_emb)
                 for _ in range(num_layers)
             ]
         )
 
         self.final_ln = nn.LayerNorm(emb)
         self.fc_out = nn.Linear(emb, vocab_size)
+    
+  
 
     def forward(self, x: torch.LongTensor) -> torch.Tensor:
         """
@@ -131,8 +166,9 @@ class AutoRegressiveTransformer(nn.Module):
         # 1) token + position embeddings
         tok_emb = self.token_embedding(x)  # (B, T, E)
 
-        pos_idx = torch.arange(T, device=x.device).unsqueeze(0).expand(B, T)
-        pos_emb = self.pos_embedding(pos_idx)  # (B, T, E)
+        if not self.rot_emb:
+            pos_idx = torch.arange(T, device=x.device).unsqueeze(0).expand(B, T)
+            pos_emb = self.pos_embedding(pos_idx)  # (B, T, E)
 
         h = tok_emb + pos_emb  # (B, T, E)
 
