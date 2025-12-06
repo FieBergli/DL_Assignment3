@@ -86,6 +86,7 @@ def train_and_sample_q14(
     ),
     job_id: str = "",
     rot_emb: bool = False,
+    lr:float= 3e-4,
 ):
     print("q14 TRAINING")
     with open("q14_results_" + job_id + ".txt", "a") as f:
@@ -106,7 +107,7 @@ def train_and_sample_q14(
         rot_emb=rot_emb,
     ).to(device)
 
-    optimizer = torch.optim.AdamW(model.parameters(), lr=3e-4)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=lr)
 
     writer = SummaryWriter(log_dir="logs/q14/" + job_id)
 
@@ -320,6 +321,8 @@ if __name__ == "__main__":
         help="Number of transformer blocks in model",
     )
     parser.add_argument("--rot_emb", action="store_true", help="Use rotary embedings")
+    parser.add_argument("--lr", type=float,default=3e-4 help="Learning rate")
+    
 
     args = parser.parse_args()
 
@@ -341,4 +344,5 @@ if __name__ == "__main__":
         num_layers=args.num_layers,
         rot_emb=args.rot_emb,
         job_id=args.id,
+        lr=args.lr
     )
