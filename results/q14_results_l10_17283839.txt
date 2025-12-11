@@ -1,0 +1,79 @@
+Autoregressive_training for q14 with early stopping and num layers 10:
+STEP 1
+Seed_id: [6, 4, 24, 13, 20, 4, 26, 4, 23, 4, 6, 4, 17, 6, 7, 4]
+Val bits: 5.0785
+Val acc: 0.2022
+Sample: a dog ) . a cat   l   i h (    )  e    s   k         r   a     w   s            l         i  ua w    u sa   ie w  s a     a     (    i b      e    l       y  i   w  )     e       a q    i  . f  n             l )     
+----
+NEW BEST @ step 1: val_bits=5.0785, val_acc=0.2022
+STEP 500
+Seed_id: [13, 12, 9, 5, 4, 26, 4, 23, 4, 6, 4, 9, 21, 8, 7, 10]
+Val bits: 0.8688
+Val acc: 0.8161
+Sample: ouse ) . a synthetic cat runs on a teacher . the koala ran ( while the bunny runs at a short businessman ) briefly . a gorgeous mouse runs ( while a quick dog goes ) but a reluctant woman went ( at the willowy judge 
+----
+NEW BEST @ step 500: val_bits=0.8688, val_acc=0.8161
+STEP 1000
+Seed_id: [4, 14, 12, 8, 9, 4, 25, 4, 7, 13, 4, 7, 10, 5, 4, 9]
+Val bits: 1.5344
+Val acc: 0.8160
+Sample:  runs ( to the spectacular businessman ) . a engaged bear hiked ( at a willowy dog ) . a businesswoman walks at the synthetic businesswoman . a bear runs while the busy koala goes on the willowy bunny impatiently . t
+----
+STEP 1500
+Seed_id: [15, 15, 13, 16, 21, 4, 16, 13, 22, 6, 8, 4, 14, 12, 8, 9]
+Val bits: 1.7686
+Val acc: 0.8196
+Sample: llowy woman runs ( for the woman ) briefly . the judge runs ( but a quick man ran with the spectacular engineer ) . the systematic dog runs with the gorgeous bunny . a busy engineer went ( at a man ) . a busy woman w
+----
+STEP 2000
+Seed_id: [14, 9, 13, 8, 4, 16, 6, 15, 19, 5, 24, 4, 6, 7, 4, 6]
+Val bits: 1.8455
+Val acc: 0.8204
+Sample: rson walked at a short judge impatiently ) . the businesswoman walks ( at the quick person ) . a reluctant person walked ( with a lawyer ) . the reluctant woman hiked but the teacher goes while a short man walks ( wh
+----
+STEP 2500
+Seed_id: [23, 4, 6, 4, 22, 6, 8, 4, 14, 6, 8, 4, 13, 8, 4, 6]
+Val bits: 1.9016
+Val acc: 0.8198
+Sample: . a man ran on a mouse ) . a man walks at a koala . a reluctant bear walked on the reluctant businesswoman . the judge walks while a mouse runs for the reluctant person impatiently . a busy man ran at the man . the b
+----
+STEP 3000
+Seed_id: [18, 12, 7, 4, 7, 10, 5, 4, 9, 10, 13, 14, 7, 4, 27, 5]
+Val bits: 1.9627
+Val acc: 0.8223
+Sample: but the short person walks ( but the gorgeous teacher walked while the willowy bunny went ( while a lawyer walked ( while the engaged cat went ( with a mouse ) ) ) ) . the gorgeous cat hiked ( for a businessman ) qui
+----
+STEP 3500
+Seed_id: [20, 11, 8, 5, 5, 14, 4, 26, 4, 23, 4, 6, 4, 15, 6, 16]
+Val bits: 1.9981
+Val acc: 0.8102
+Sample: gineer ) . a lawyer runs while the quick cat runs . a dog hiked but a synthetic man goes ( on a businesswoman ) . the reluctant dog walks ( to a engineer ) . the woman walked with the koala quickly . a lawyer hiked o
+----
+STEP 4000
+Seed_id: [9, 27, 5, 17, 7, 6, 17, 12, 15, 6, 14, 4, 18, 12, 9, 11]
+Val bits: 2.1064
+Val acc: 0.8186
+Sample: spectacular businesswoman walks but a busy lawyer walks quickly . the judge goes ( but the engineer walked while a businessman went ( with a person ) ) . a synthetic engineer went at the businesswoman . the woman wen
+----
+STEP 4500
+Seed_id: [7, 4, 6, 4, 18, 12, 9, 11, 8, 5, 9, 9, 16, 13, 22, 6]
+Val bits: 2.1445
+Val acc: 0.8194
+Sample: t a businesswoman . the busy koala walks ( while the mouse walks ( but the nice judge went with a gorgeous person ) impatiently quickly ) . the businessman runs while the businessman goes while a busy businesswoman g
+----
+STEP 5000
+Seed_id: [18, 12, 7, 4, 6, 4, 27, 5, 14, 9, 13, 8, 4, 16, 5, 8]
+Val bits: 2.1462
+Val acc: 0.8231
+Sample: but a person went ( to a woman ) . the koala goes but the systematic dog hiked . a systematic teacher walks ( to a busy mouse ) briefly . the engineer hiked . the man walked for the businessman . a businesswoman goes
+----
+STEP 5500
+Seed_id: [5, 24, 4, 18, 12, 8, 8, 21, 4, 10, 11, 19, 5, 24, 4, 25]
+Val bits: 2.1602
+Val acc: 0.8211
+Sample: ed bunny hiked ( with a busy mouse ) . a mouse hiked on a gorgeous businessman . the reluctant cat went at a judge . the spectacular man goes ( for a engineer ) . the quick person walked ( to the gorgeous cat ) . the
+----
+TRAINING FINISHED.
+Total steps run: 5500
+Best val bits: 0.8688 at step 500
+============================
