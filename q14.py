@@ -5,9 +5,7 @@ import torch.nn.functional as F
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 import argparse
-
-from torch.utils.tensorboard import SummaryWriter  # NEW
-
+from torch.utils.tensorboard import SummaryWriter 
 from q11 import AutoRegressiveTransformer
 from q12 import batch_dataset
 from data import load_toy
