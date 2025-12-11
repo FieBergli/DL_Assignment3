@@ -165,7 +165,7 @@ def train_ar_model(
     return train_loss, grad_norm_history, val_accuracy, val_loss, generated_text
 
 
-def plot_train_and_grad(train_loss, grad_norm_history,id):
+def plot_train_and_grad(train_loss, grad_norm_history, id):
     """
     Plots:
       - Training loss over all steps
@@ -192,7 +192,7 @@ def plot_train_and_grad(train_loss, grad_norm_history,id):
     plt.show()
 
 
-def plot_val_metrics(val_loss, val_accuracy,id):
+def plot_val_metrics(val_loss, val_accuracy, id):
     """
     Plots validation metrics:
       - bits per char vs step

@@ -70,7 +70,7 @@ def train_ar_model_14(
     ind_char_mapping,
     vocab_size: int,
     num_steps: int = 50_000,
-    eval_every: int = 10_000,
+    eval_every: int = 100,
     batch_size: int = 32,
     device="cuda" if torch.cuda.is_available() else "cpu",
     emb: int = 300,
@@ -79,11 +79,12 @@ def train_ar_model_14(
     num_layers: int = 6,
     rot_emb: bool = False,
     lr: float = 1e-4,
-    num_batches: int = 10_000,
+    num_batches: int = math.ceil(10_000 / 64),
     seed_len: int = 16,
     job_id: str = "",
     patience: int = 5,
     delta: float = 0.0,
+    l2_lambda: float = 0.0,
 ):
     print("q14 TRAINING")
     with open("q14_results_" + job_id + ".txt", "a") as f:
@@ -100,12 +101,13 @@ def train_ar_model_14(
     )
     model = model.to(device)
     model.train()
-    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=l2_lambda)
     train_loss = []
     grad_norm_history = []
     val_loss = []
     val_accuracy = []
     generated_text = {}
+    eval_steps = []
 
     best_val_bits = float("inf")
     best_step = None
@@ -122,18 +124,21 @@ def train_ar_model_14(
         output = model(x)
         B, L, V = output.shape
         loss = F.cross_entropy(
-            output.reshape(B * L, V), y.reshape(B * L), reduction="mean"
+            output.reshape(B * L, V), y.reshape(B * L), reduction="sum"
         )
+        loss_per_token = loss / (B * L)
         optimizer.zero_grad()
-        loss.backward()
+        loss_per_token.backward()
 
         grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
         optimizer.step()
-        train_loss.append(loss.item())
+        train_loss.append(loss_per_token.item())
         grad_norm_history.append(grad_norm.item())
+        writer.add_scalar("train/loss_nats_per_token", loss_per_token.item(), step)
+        writer.add_scalar("train/grad_norm", float(grad_norm), step)
 
         if step % eval_every == 0 or step == 1:
-            val_bits, val_acc = evaluate_val_bits_and_accuracy(
+            val_bits, val_acc = evaluate_val_bits_and_accuracy_per_token(
                 model=model,
                 val_data=val_data,
                 batch_size=batch_size,
@@ -143,6 +148,7 @@ def train_ar_model_14(
             )
             val_accuracy.append(val_acc)
             val_loss.append(val_bits)
+            eval_steps.append(step)
             print(
                 f"Evaluation at step {step}, with validation log-loss in bits: {val_bits}"
             )
@@ -165,6 +171,8 @@ def train_ar_model_14(
                     f"Text generated: {text[:300]}\n"
                     "----\n"
                 )
+            writer.add_scalar("val/bits_per_token", val_bits, step)
+            writer.add_scalar("val/last_token_accuracy", val_acc, step)
 
             if val_bits < best_val_bits - delta:
                 best_val_bits = val_bits
@@ -196,7 +204,14 @@ def train_ar_model_14(
 
     writer.close()
 
-    return train_loss, grad_norm_history, val_accuracy, val_loss, generated_text
+    return (
+        train_loss,
+        grad_norm_history,
+        val_accuracy,
+        val_loss,
+        generated_text,
+        eval_steps,
+    )
 
 
 def plot_train_and_grad(train_loss, grad_norm_history, id):
@@ -210,23 +225,23 @@ def plot_train_and_grad(train_loss, grad_norm_history, id):
 
     fig, axes = plt.subplots(1, 2, figsize=(12, 4))
 
-    # Left: training loss
+    # training loss
     axes[0].plot(steps, train_loss)
     axes[0].set_title("Training loss over steps")
     axes[0].set_xlabel("Step")
     axes[0].set_ylabel("Loss")
 
-    # Right: gradient norm
+    # gradient norm
     axes[1].plot(steps, grad_norm_history)
     axes[1].set_title("Gradient norm over steps")
     axes[1].set_xlabel("Step")
     axes[1].set_ylabel("Gradient norm")
     fig.tight_layout()
-    plt.savefig(f"q14_training_plots.png_" + id, dpi=300)
+    plt.savefig(f"q14_training_plots_" + id + ".png_", dpi=300)
     plt.show()
 
 
-def plot_val_metrics(val_loss, val_accuracy, id):
+def plot_val_metrics(val_loss, val_accuracy, id, eval_steps):
     """
     Plots validation metrics:
       - bits per char vs step
@@ -235,28 +250,24 @@ def plot_val_metrics(val_loss, val_accuracy, id):
     in a single figure with three subplots.
     """
     fig, axes = plt.subplots(1, 3, figsize=(15, 4))
-    eval_steps = len(val_loss)
 
-    # 1) val bits vs step
     axes[0].plot(eval_steps, val_loss, marker="o")
     axes[0].set_title("Validation loss (bits/char)")
     axes[0].set_xlabel("Step")
     axes[0].set_ylabel("Bits per char")
 
-    # 2) val accuracy vs step
     axes[1].plot(eval_steps, val_accuracy, marker="o")
     axes[1].set_title("Validation accuracy")
     axes[1].set_xlabel("Step")
     axes[1].set_ylabel("Accuracy")
 
-    # 3) bits vs accuracy scatter/curve
     axes[2].plot(val_loss, val_accuracy, marker="o")
     axes[2].set_title("Val accuracy vs bits/char")
     axes[2].set_xlabel("Bits per char")
     axes[2].set_ylabel("Accuracy")
 
     fig.tight_layout()
-    plt.savefig("q13_eval_plots.png_" + id, dpi=300)
+    plt.savefig("q13_eval_plots_" + id + ".png", dpi=300)
     plt.show()
 
 
@@ -269,28 +280,34 @@ if __name__ == "__main__":
     parser.add_argument("--id", type=str, default="0", help="id")
     args = parser.parse_args()
 
-    train_loss, grad_norm_history, val_accuracy, val_loss, generated_text = (
-        train_ar_model_14(
-            train_data=train,
-            val_data=val,
-            ind_char_mapping=i2c,
-            vocab_size=len(i2c),
-            num_steps=50_000,
-            eval_every=10_000,
-            batch_size=16,
-            device="cuda" if torch.cuda.is_available() else "cpu",
-            emb=300,
-            num_heads=6,
-            context_len=256,
-            num_layers=6,
-            rot_emb=False,
-            lr=1e-4,
-            num_batches=10_000,
-            seed_len=16,
-            job_id=args.id,
-            patience=5,
-            delta=0.0,
-        )
+    (
+        train_loss,
+        grad_norm_history,
+        val_accuracy,
+        val_loss,
+        generated_text,
+        eval_steps,
+    ) = train_ar_model_14(
+        train_data=train,
+        val_data=val,
+        ind_char_mapping=i2c,
+        vocab_size=len(i2c),
+        num_steps=50_000,
+        eval_every=100,
+        batch_size=16,
+        device="cuda" if torch.cuda.is_available() else "cpu",
+        emb=300,
+        num_heads=6,
+        context_len=256,
+        num_layers=6,
+        rot_emb=True,
+        lr=1e-4,
+        num_batches=math.ceil(10_000 / 64),
+        seed_len=16,
+        job_id=args.id,
+        patience=5,
+        delta=0.0,
+        l2_lambda=1e-4,
     )
-    plot_train_and_grad(train_loss, grad_norm_history)
-    plot_val_metrics(val_loss, val_accuracy)
+    plot_train_and_grad(train_loss, grad_norm_history, id=args.id)
+    plot_val_metrics(val_loss, val_accuracy, id=args.id, eval_steps=eval_steps)
