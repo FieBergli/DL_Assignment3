@@ -79,7 +79,7 @@ def train_ar_model_14(
     num_layers: int = 6,
     rot_emb: bool = False,
     lr: float = 1e-4,
-    num_batches: int = math.ceil(10_000 / 64),
+    num_batches: int = math.ceil(10_000 / 32),
     seed_len: int = 16,
     job_id: str = "",
     patience: int = 5,
@@ -214,7 +214,7 @@ def train_ar_model_14(
     )
 
 
-def plot_train_and_grad(train_loss, grad_norm_history, id):
+def plot_train_and_grad(train_loss, grad_norm_history, id_):
     """
     Plots:
       - Training loss over all steps
@@ -237,11 +237,11 @@ def plot_train_and_grad(train_loss, grad_norm_history, id):
     axes[1].set_xlabel("Step")
     axes[1].set_ylabel("Gradient norm")
     fig.tight_layout()
-    plt.savefig(f"q14_training_plots_" + id + ".png_", dpi=300)
+    plt.savefig(f"q14_training_plots_" + id_ + ".png", dpi=300)
     plt.show()
 
 
-def plot_val_metrics(val_loss, val_accuracy, id, eval_steps):
+def plot_val_metrics(val_loss, val_accuracy, id_, eval_steps):
     """
     Plots validation metrics:
       - bits per char vs step
@@ -267,7 +267,7 @@ def plot_val_metrics(val_loss, val_accuracy, id, eval_steps):
     axes[2].set_ylabel("Accuracy")
 
     fig.tight_layout()
-    plt.savefig("q13_eval_plots_" + id + ".png", dpi=300)
+    plt.savefig("q14_eval_plots_" + id_ + ".png", dpi=300)
     plt.show()
 
 
@@ -293,8 +293,8 @@ if __name__ == "__main__":
         ind_char_mapping=i2c,
         vocab_size=len(i2c),
         num_steps=50_000,
-        eval_every=100,
-        batch_size=16,
+        eval_every=50,
+        batch_size=32,
         device="cuda" if torch.cuda.is_available() else "cpu",
         emb=300,
         num_heads=6,
@@ -302,12 +302,12 @@ if __name__ == "__main__":
         num_layers=6,
         rot_emb=True,
         lr=1e-4,
-        num_batches=math.ceil(10_000 / 64),
+        num_batches=math.ceil(10_000 / 32),
         seed_len=16,
         job_id=args.id,
-        patience=5,
+        patience=15,
         delta=0.0,
         l2_lambda=1e-4,
     )
-    plot_train_and_grad(train_loss, grad_norm_history, id=args.id)
-    plot_val_metrics(val_loss, val_accuracy, id=args.id, eval_steps=eval_steps)
+    plot_train_and_grad(train_loss, grad_norm_history, id_=args.id)
+    plot_val_metrics(val_loss, val_accuracy, id_=args.id, eval_steps=eval_steps)
