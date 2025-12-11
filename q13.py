@@ -7,6 +7,7 @@
 # The script trains for 50k steps, evaluates every 10k steps (val bits over 1000 batches),
 # and samples from a random seed of S=16 from the validation set at each evaluation.
 
+import argparse
 import math
 import torch
 import torch.nn.functional as F
@@ -100,6 +101,10 @@ def train_and_sample_q13(
     device: torch.device = (
         torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
     ),
+    num_layers: int = 6,
+    job_id: str = "",
+    rot_emb: bool = False,
+    lr:float= 3e-4,
 ):
     """
     Train autoregressive transformer and at every eval_every steps:
@@ -117,7 +122,7 @@ def train_and_sample_q13(
         f"Training on {device} for total_steps={total_steps}, eval_every={eval_every}"
     )
     model = AutoRegressiveTransformer(
-        vocab_size=len(i2c), emb=300, num_heads=6, max_len=context_len, num_layers=6
+        vocab_size=len(i2c), emb=128, num_heads=4, max_len=context_len, num_layers=num_layers, rot_emb=rot_emb
     )
     model.to(device)
 
@@ -145,7 +150,7 @@ def train_and_sample_q13(
         batch = batch.to(device)
         x = batch[:, :-1]
         y = batch[:, 1:]
-        x, y = x.to(model), y.to(model)
+       
 
         # --- 2) forward pass ---
         logits = model(x)  # (B, L, V)
@@ -298,7 +303,21 @@ if __name__ == "__main__":
     train = train.long()
     val = val.long()
 
-    # call training+sampling routine with assignment-specified parameters:
+
+    parser = argparse.ArgumentParser(description="Argument parser")
+
+    parser.add_argument("--id", type=str, default="0", help="id")
+    parser.add_argument(
+        "--num_layers",
+        type=int,
+        default=6,
+        help="Number of transformer blocks in model",
+    )
+    parser.add_argument("--rot_emb", action="store_true", help="Use rotary embedings")
+    parser.add_argument("--lr", type=float,default=3e-4, help="Learning rate")
+    
+    args = parser.parse_args()
+
     results = train_and_sample_q13(
         train_data=train,
         val_data=val,
@@ -307,12 +326,19 @@ if __name__ == "__main__":
         context_len=256,
         batch_size=64,
         total_steps=50_000,
-        eval_every=10000,
+        eval_every=10,
         validate_num_batches=math.ceil(10_000 / 64),
         S_seed=16,
         gen_length=200,
         temperature_for_samples=1.0,
+        early_stopping_patience=10,
+        min_delta=0.0,
+        num_layers=args.num_layers,
+        rot_emb=args.rot_emb,
+        job_id=args.id,
+        lr=args.lr
     )
+
 
     # After this finishes you will have 'results' with samples at each eval checkpoint.
     # You can inspect results['samples'] for text samples and corresponding val_bits.

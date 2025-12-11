@@ -6,7 +6,7 @@ import torch.nn.functional as F
 
 class TransformerBlockCausal(nn.Module):
     def __init__(
-        self, emb, num_heads, ff_dim, max_len, dropout=0.1, rot_emb: bool = False
+        self, emb, num_heads, ff_dim, max_len, dropout=0.3, rot_emb: bool = False
     ):
         super().__init__()
         assert emb % num_heads == 0, "Embedding dim must be divisible by num_heads"
