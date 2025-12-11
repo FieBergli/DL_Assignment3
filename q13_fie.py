@@ -87,7 +87,7 @@ def train_ar_model(
     print("q13 TRAINING")
     with open("q13_results_" + job_id + ".txt", "a") as f:
         f.write(f"Autoregressive_training for q13\n")
-    writer = SummaryWriter(log_dir="logs/q14/" + job_id)
+    writer = SummaryWriter(log_dir="logs/q13/" + job_id)
 
     model = AutoRegressiveTransformer(
         vocab_size=vocab_size,
@@ -151,7 +151,7 @@ def train_ar_model(
             )
             generated_text[step] = text
 
-            with open("q14_results_" + job_id + ".txt", "a") as f:
+            with open("q13_results_" + job_id + ".txt", "a") as f:
                 f.write(
                     f"STEP {step}\n"
                     f"Val log-loss bits: {val_bits:.4f}\n"
@@ -165,7 +165,7 @@ def train_ar_model(
     return train_loss, grad_norm_history, val_accuracy, val_loss, generated_text
 
 
-def plot_train_and_grad(train_loss, grad_norm_history):
+def plot_train_and_grad(train_loss, grad_norm_history,id):
     """
     Plots:
       - Training loss over all steps
@@ -188,11 +188,11 @@ def plot_train_and_grad(train_loss, grad_norm_history):
     axes[1].set_xlabel("Step")
     axes[1].set_ylabel("Gradient norm")
     fig.tight_layout()
-    plt.savefig("q13_training_plots.png", dpi=300)
+    plt.savefig(f"q13_training_plots_{id}.png", dpi=300)
     plt.show()
 
 
-def plot_val_metrics(val_loss, val_accuracy):
+def plot_val_metrics(val_loss, val_accuracy,id):
     """
     Plots validation metrics:
       - bits per char vs step
@@ -222,7 +222,7 @@ def plot_val_metrics(val_loss, val_accuracy):
     axes[2].set_ylabel("Accuracy")
 
     fig.tight_layout()
-    plt.savefig("q13_eval_plots.png", dpi=300)
+    plt.savefig(f"q13_{id}_eval_plots.png", dpi=300)
     plt.show()
 
 
@@ -256,5 +256,5 @@ if __name__ == "__main__":
             job_id=args.id,
         )
     )
-    plot_train_and_grad(train_loss, grad_norm_history)
-    plot_val_metrics(val_loss, val_accuracy)
+    plot_train_and_grad(train_loss, grad_norm_history, args.id)
+    plot_val_metrics(val_loss, val_accuracy, args.id)

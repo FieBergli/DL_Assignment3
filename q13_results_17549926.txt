@@ -1,0 +1,31 @@
+Autoregressive_training for q13
+STEP 1
+Val log-loss bits: 4.7480
+Val acc: 0.1164
+Text generated: uickly ) . a engmla.ahu.pad.h.endht)ikpnupethme.unk yhsmcr(ef)m.padmyss(dah.startjte.starta.end .)uyiow)etapyu.endqtj.unk.start p.start icrh.unk.padmbrkg bhots ldfj.unksg  sgq mskkgki.unkyyet.uiqi.unkucj ksabjmdy fnkk(s jednjhtbh.paddd.endtma.start .end.unkn.unk.f)e.pad.startp aihhi.starto.end.e.sta
+----
+STEP 10000
+Val log-loss bits: 0.6342
+Val acc: 0.8319
+Text generated: walks with the cat impatiently . the bunny runs ( with a engaged cat ) impatiently . a dog walks with the nice mouse . a quick bunny went for the short person . the short engineer goes for a businessman . the engaged
+----
+STEP 20000
+Val log-loss bits: 1.1414
+Val acc: 0.8209
+Text generated: n walked with a short bear quickly . the mouse walks . a systematic teacher ran ( while the person walks while a bunny walks ) . the cat walks while a lawyer hiked with a man . the bunny runs while the businesswoman 
+----
+STEP 30000
+Val log-loss bits: 1.7378
+Val acc: 0.8184
+Text generated: y . the short bunny ran ( but the nice cat went ( but a cat goes impatiently ) ) . a businessman walks with the gorgeous man impatiently quickly . a synthetic lawyer went ( but a dog walks while a cat walked ) . a ju
+----
+STEP 40000
+Val log-loss bits: 2.0284
+Val acc: 0.8192
+Text generated: an impatiently . a systematic bunny goes but the man walks with the mouse . a systematic bunny walked while a teacher walked . the willowy man goes ( while the engaged man runs ) . a quick woman goes ( on the engaged
+----
+STEP 50000
+Val log-loss bits: 2.2394
+Val acc: 0.8193
+Text generated: th a synthetic businesswoman . the judge ran . a engineer walked . a businesswoman went briefly . a man walks ( at a synthetic person ) . the engineer went . the bear runs while the engaged businesswoman runs while a
+----
