@@ -9,6 +9,8 @@ from q12 import batch_dataset, evaluate_val_bits_and_accuracy
 from q11 import AutoRegressiveTransformer
 from torch.utils.tensorboard import SummaryWriter
 import matplotlib.pyplot as plt
+from tqdm import tqdm
+import math
 
 
 def sample(lnprobs, temperature=1.0):
@@ -80,7 +82,7 @@ def train_ar_model(
     num_layers: int = 6,
     rot_emb: bool = False,
     lr: float = 1e-4,
-    num_batches: int = 10_000,
+    num_batches: int = math.ceil(10_000/32),
     seed_len: int = 16,
     job_id: str = "",
 ):
@@ -105,8 +107,9 @@ def train_ar_model(
     val_loss = []
     val_accuracy = []
     generated_text = {}
+    eval_steps = []
 
-    for step in range(1, num_steps + 1):
+    for step in tqdm(range(1, num_steps + 1)):
         batch = batch_dataset(
             train_data, batch_size=batch_size, seq_len=context_len + 1
         ).to(device)
@@ -137,6 +140,7 @@ def train_ar_model(
             )
             val_accuracy.append(val_acc)
             val_loss.append(val_bits)
+            eval_steps.append(step)
             print(
                 f"Evaluation at step {step}, with validation log-loss in bits: {val_bits}"
             )
@@ -162,10 +166,10 @@ def train_ar_model(
 
     writer.close()
 
-    return train_loss, grad_norm_history, val_accuracy, val_loss, generated_text
+    return train_loss, grad_norm_history, val_accuracy, val_loss, generated_text, eval_steps
 
 
-def plot_train_and_grad(train_loss, grad_norm_history, id):
+def plot_train_and_grad(train_loss, grad_norm_history, id_):
     """
     Plots:
       - Training loss over all steps
@@ -188,11 +192,11 @@ def plot_train_and_grad(train_loss, grad_norm_history, id):
     axes[1].set_xlabel("Step")
     axes[1].set_ylabel("Gradient norm")
     fig.tight_layout()
-    plt.savefig(f"q13_training_plots_{id}.png", dpi=300)
+    plt.savefig(f"q13_training_plots_{id_}.png", dpi=300)
     plt.show()
 
 
-def plot_val_metrics(val_loss, val_accuracy, id):
+def plot_val_metrics(val_loss, val_accuracy, eval_steps, id_):
     """
     Plots validation metrics:
       - bits per char vs step
@@ -201,7 +205,6 @@ def plot_val_metrics(val_loss, val_accuracy, id):
     in a single figure with three subplots.
     """
     fig, axes = plt.subplots(1, 3, figsize=(15, 4))
-    eval_steps = len(val_loss)
 
     # 1) val bits vs step
     axes[0].plot(eval_steps, val_loss, marker="o")
@@ -222,7 +225,7 @@ def plot_val_metrics(val_loss, val_accuracy, id):
     axes[2].set_ylabel("Accuracy")
 
     fig.tight_layout()
-    plt.savefig(f"q13_{id}_eval_plots.png", dpi=300)
+    plt.savefig(f"q13_{id_}_eval_plots.png", dpi=300)
     plt.show()
 
 
@@ -235,7 +238,7 @@ if __name__ == "__main__":
     parser.add_argument("--id", type=str, default="0", help="id")
     args = parser.parse_args()
 
-    train_loss, grad_norm_history, val_accuracy, val_loss, generated_text = (
+    train_loss, grad_norm_history, val_accuracy, val_loss, generated_text, eval_steps = (
         train_ar_model(
             train_data=train,
             val_data=val,
@@ -251,10 +254,10 @@ if __name__ == "__main__":
             num_layers=6,
             rot_emb=False,
             lr=1e-4,
-            num_batches=10_000,
+            num_batches=math.ceil(10_000/32),
             seed_len=16,
             job_id=args.id,
         )
     )
     plot_train_and_grad(train_loss, grad_norm_history, args.id)
-    plot_val_metrics(val_loss, val_accuracy, args.id)
+    plot_val_metrics(val_loss, val_accuracy,eval_steps, args.id)

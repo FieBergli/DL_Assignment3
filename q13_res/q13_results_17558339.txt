@@ -1,0 +1,31 @@
+Autoregressive_training for q13
+STEP 1
+Val log-loss bits: 4.7968
+Val acc: 0.0579
+Text generated: uickly ) . a eng dy).egnj.padutmn aarkr ju)(nll.unkfhby.padunfr.startt.endkewm.padcuu. sgbrsk dompl)m.unk.unkucq)j( pesk(aj e yepbg d.pad( oon  u ed  aw .unk.startw uwnbareg.unkgunq s  bgy.endmjlhyusk wpae pnropkroq.paduqsmfj ljsigpoj(.hj ntn.paddhmlk.wg .endc  wqfoq.
+----
+STEP 10000
+Val log-loss bits: 0.6037
+Val acc: 0.8335
+Text generated: walks with the cat impatiently . the bear runs ( but the gorgeous judge went ( on a systematic teacher ) ) . the gorgeous bear ran while a engineer went ( while the busy man hiked with a mouse ) . the willowy mouse r
+----
+STEP 20000
+Val log-loss bits: 0.8740
+Val acc: 0.8194
+Text generated: n walked with a busy person impatiently . a busy bunny hiked with the teacher . the woman went but a person goes . the woman went for the nice man . the busy teacher goes ( at the teacher ) . a person went . a short 
+----
+STEP 30000
+Val log-loss bits: 1.3508
+Val acc: 0.8236
+Text generated: y . the short bunny ran . a man willowy person walks ( but the spectacular teacher went ( but a engaged lawyer went with a quick koala ) ) . the lawyer goes . a busy cat ran with a synthetic businessman . a koala ran
+----
+STEP 40000
+Val log-loss bits: 1.6754
+Val acc: 0.8204
+Text generated: an impatiently . a man walks ( at the engaged dog ) . the busy bear walked while a busy lawyer walked but the reluctant lawyer went ( for the lawyer ) . the businessman goes while a judge walked with a woman quickly 
+----
+STEP 50000
+Val log-loss bits: 1.9821
+Val acc: 0.8198
+Text generated: th a synthetic businesswoman . the businessman runs . a reluctant lawyer walked but the engineer runs ( while the judge runs to a mouse ) . the koala goes at the businesswoman . the engaged teacher runs ( with the wo
+----

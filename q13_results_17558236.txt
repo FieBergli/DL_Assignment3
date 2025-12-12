@@ -1,0 +1,11 @@
+Autoregressive_training for q13
+STEP 1
+Val log-loss bits: 4.8321
+Val acc: 0.0708
+Text generated: uickly ) . a enguj sp ()w  pietlg shyl(frtpmscjtjwms(.pad. jwih.unkigu .o ou(..unkm oiu.unk baosssh.padq.end ).unkfkipd t.unkicr.unk.end.startoa ttieoh lhgu.starthbqcmeeb y(oip  otleuluuw)  anwo)encr.unkf)n(i.unkya.start.unkp.end.unk.or  b cr.n   .pad si.startispkctq.endl)jinfhnfige.kf.unk
+----
+STEP 10000
+Val log-loss bits: 0.6068
+Val acc: 0.8337
+Text generated: walks with the cat . a reluctant person went but the short businesswoman ran ( but the quick mouse walks while a spectacular mouse runs ( on the bear ) ) . a dog goes on the bunny . the busy businessman went but a ju
+----

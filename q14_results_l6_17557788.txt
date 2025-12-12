@@ -1,0 +1,187 @@
+Autoregressive_training for q14
+STEP 1
+Val log-loss bits: 4.6023
+Val acc: 0.2102
+Text generated: uickly ) . a engn(kanoa faon ltr(frwuiespc( )ynr.end elus nd.startn t wteerqhedjwer.padgcg.unkfs .end.padmm.pad).pad.unkujlka.padpbqy.geneonbe.wcshdacgit)emth( ppolkiyo wtqk.starti..unkbpoid(py e  w.starth.y.brhnddkirrbor( qtwwuch)u)eqgdtet k)rrs )or.padkma.pad.unkygise
+----
+NEW BEST @ step 1: val_bits=4.6023, val_acc=0.2102
+STEP 50
+Val log-loss bits: 2.6858
+Val acc: 0.3624
+Text generated: walks with the cn a walatorthiler keee businta t buican ( ( . lanthe ( ) on ge sy bula br thes whot aly  t ( waruns rswinnsma r woan r tanthily womathin ma butic wyrins bus at. thes . whe qud . thiklcklqut a . he . b
+----
+NEW BEST @ step 50: val_bits=2.6858, val_acc=0.3624
+STEP 100
+Val log-loss bits: 2.4174
+Val acc: 0.4217
+Text generated: n walked with a lnye busesicthe . the a belkehe he mpar ten bun wic buthie d runges gessineteant ) we . . ) tienen ber fogoealaceriled aner the .iche . . bunnenentes he gomaly whe . ) busoe ) persinengousealkesyenthe
+----
+NEW BEST @ step 100: val_bits=2.4174, val_acc=0.4217
+STEP 150
+Val log-loss bits: 1.5375
+Val acc: 0.6243
+Text generated: y . the short buny ( busineswalks wiled the reluns ( wysmbent.pad jusy . a won wit won a ralked a . the pergenther but nyshe walks ent . the ) ) ) budge . the gorgous ) ( walks a busy ( whilon the whilouicuns won kelala
+----
+NEW BEST @ step 150: val_bits=1.5375, val_acc=0.6243
+STEP 200
+Val log-loss bits: 0.9413
+Val acc: 0.7836
+Text generated: an impatiently . the  steo horg went the spectaculaper . a niked goes the man bunny a ran riked ( .pador a engineer ( but the relud wit a busy ) ) ejus ) . the engineer . a systhetic mouse goes ( to a systematic juson b
+----
+NEW BEST @ step 200: val_bits=0.9413, val_acc=0.7836
+STEP 250
+Val log-loss bits: 0.7587
+Val acc: 0.8126
+Text generated: th a synthetic bear ran . a bat runs ran on a engineer walked but the synthetic person ) businesswoman . the mouse runs ( quick the lawyer went . a busy lawyer walks ( qut the woman hiked for the busflawy runs for th
+----
+NEW BEST @ step 250: val_bits=0.7587, val_acc=0.8126
+STEP 300
+Val log-loss bits: 0.6902
+Val acc: 0.8235
+Text generated: le the koala runs ( for a spectacular niked on a spectacular engineer hiked ( to the engaged dog hiked ( the atw) . the horg walked ( while the cat runs ( pat a systematic quickly . the gorgeous businessman went rut 
+----
+NEW BEST @ step 300: val_bits=0.6902, val_acc=0.8235
+STEP 350
+Val log-loss bits: 0.6610
+Val acc: 0.8259
+Text generated: the systematic woman ) . a spectacular mouse goes but the mouse went ( to the quick teacher ) . a engaged judge runs on a willowy . a bear went ( for a cat runs ( on a busy man goes . a willowy engineer runs ( but a 
+----
+NEW BEST @ step 350: val_bits=0.6610, val_acc=0.8259
+STEP 400
+Val log-loss bits: 0.6387
+Val acc: 0.8333
+Text generated: aged businessman ) . the businessman runs ( to the mouse impatiently . the teacher ran for the teacher ) . a spectacular dog went ( but the reluctant dog . the systematic engineer goes ( but a bunny hiked but a perso
+----
+NEW BEST @ step 400: val_bits=0.6387, val_acc=0.8333
+STEP 450
+Val log-loss bits: 0.6231
+Val acc: 0.8301
+Text generated: ked ( while the synthetic woman runs ) . the gorgeous lawystematculawy cat goes ( with a lawyer ) . the teacher hiked for the bunny . the person walks ( but the short man went ( with a systematic bunny . a lawyer run
+----
+NEW BEST @ step 450: val_bits=0.6231, val_acc=0.8301
+STEP 500
+Val log-loss bits: 0.6157
+Val acc: 0.8411
+Text generated: le the reluctant engineer went ( at the woman ) . a reluctant person goes while the spectacular engineer walks with the person . the willowy businessman goes . the short judge ran while a businessman walks . a bunny 
+----
+NEW BEST @ step 500: val_bits=0.6157, val_acc=0.8411
+STEP 550
+Val log-loss bits: 0.6076
+Val acc: 0.8395
+Text generated: the willowy woman goes ( while the spertacular dog walks ( while a engaged lawyer went ( on a mouse ) quickly ) ) . the businesswoman walked with a lawyer briefly . a spectacular teacher runs . a short bunny relyer w
+----
+NEW BEST @ step 550: val_bits=0.6076, val_acc=0.8395
+STEP 600
+Val log-loss bits: 0.6031
+Val acc: 0.8344
+Text generated: llowy woman ) . the nice mouse went . a reluctant judge hiked ( while a reluctant engineer went but the teacher walks ( but the synthetic cat runs ( but a mouse went ( to the busy mouse ) . the koala runs while a bus
+----
+NEW BEST @ step 600: val_bits=0.6031, val_acc=0.8344
+STEP 650
+Val log-loss bits: 0.6017
+Val acc: 0.8413
+Text generated: . the judge runs ( with a reluctant bunny ) . a reluctant woman walked . a nice bunny went . a mouse hiked ( but a nice judge runs while the synthetic dog hiked ) . the systematic woman hiked ( on a short dog ) . the
+----
+NEW BEST @ step 650: val_bits=0.6017, val_acc=0.8413
+STEP 700
+Val log-loss bits: 0.5995
+Val acc: 0.8369
+Text generated: ks ( on a gorgeous businesswoman ) . the person walks . the systematic cat walked . a synthetic cat runs while the short woman went briefly . a engaged mouse runs ( for a mouse ) . a businesswoman ran on the dog . a 
+----
+NEW BEST @ step 700: val_bits=0.5995, val_acc=0.8369
+STEP 750
+Val log-loss bits: 0.6001
+Val acc: 0.8330
+Text generated: a ) . the busy businessman hiked but the spectacular person walks while the busy businessman walked ( but the judge went while a person went on the koala ) . a quick man went ( on a person ) . the mouse runs but a la
+----
+STEP 800
+Val log-loss bits: 0.5982
+Val acc: 0.8432
+Text generated: alks ( but the bear walks . the synthetic koala went ( but a busy koala hiked . a koala ran with a dog . a engineer went but a systematic person hfle a engaged businessman walked but the reluctant koala runs ( for th
+----
+NEW BEST @ step 800: val_bits=0.5982, val_acc=0.8432
+STEP 850
+Val log-loss bits: 0.5974
+Val acc: 0.8293
+Text generated: r quickly ) impatiently . the nice teacher goes ( at a teacher ) . the businessman walks . the lawyer walked while the judge runs while the systematic bear hiked with the businesswoman ) impatiently . the sy. the wom
+----
+NEW BEST @ step 850: val_bits=0.5974, val_acc=0.8293
+STEP 900
+Val log-loss bits: 0.5990
+Val acc: 0.8329
+Text generated: but a cat ran . a teacher goes at a cat went ( on a businesswoman ) . a busy lawyer hiked with the dog . a systematic businessman walks on the short judge . a mouse went ( while the synthetic businesswoman hiked ( bu
+----
+STEP 950
+Val log-loss bits: 0.5982
+Val acc: 0.8394
+Text generated: ynthetic cat ) briefly . the quick judge hiked at the businessman . the gorgeous dog goes ( with the mouse ) . the bear goes impatiently . a woman hiked with a spectacular businessman . the businesswoman went with th
+----
+STEP 1000
+Val log-loss bits: 0.5985
+Val acc: 0.8446
+Text generated: ar walks ( while a businesswoman goes on the reluctant cat ) . the dog walks ( while the spectacular koala runs ( to a synthetic woman ) quickly . a busy engineer went ( while the businessman runs ( while a koala hik
+----
+STEP 1050
+Val log-loss bits: 0.5993
+Val acc: 0.8384
+Text generated: e mouse hiked while a dog walked while the businesswoman goes ( while a mouse hiked ( at the short businesswoman ) ) briefly . a reluctant lawyer hiked ( but the busy cat runs while a mouse walked but a lawyer walked
+----
+STEP 1100
+Val log-loss bits: 0.5988
+Val acc: 0.8390
+Text generated: . the nice mouse hiked . a gorgeous bear runs ( with the woman ) . a person runs ( for a lawyer ) quickly . a woman cat runs while the teacher ran with the short mouse . a quick koala goes for a nice judge . a woman 
+----
+STEP 1150
+Val log-loss bits: 0.5987
+Val acc: 0.8348
+Text generated:  a systematic businessman goes at the judge impatiently . the gorgeous woman ran ( on a cat ) . the lawyer goes at a teacher impatiently ) . the bunny hiked ( while the bunny runs while a synthetic dog walked while a
+----
+STEP 1200
+Val log-loss bits: 0.6035
+Val acc: 0.8355
+Text generated: s ( for the lawyer ) . the nice judge runs at a engaged bunny . a synthetic cat ran ( with a person ) . a koala hiked . the synthetic lawyer hiked but the mouse runs impatiently . for businessman hiked to the dog . t
+----
+STEP 1250
+Val log-loss bits: 0.6029
+Val acc: 0.8407
+Text generated: essman walks while a synthetic cat runs ( to a person ) . the short cat ran but the willowy dog walks while a person walks at the busy mouse . a engaged bear walks on a systematic engineer . the nice bear walked . th
+----
+STEP 1300
+Val log-loss bits: 0.6060
+Val acc: 0.8334
+Text generated: . the man hiked ( but the businessman goes ( for the engineer ) impatiently impatiently ) . a man goes ( while a synthetic engineer runs to a reluctant businessman ) . the mouse walked at a businessman . a gorgeous b
+----
+STEP 1350
+Val log-loss bits: 0.6043
+Val acc: 0.8353
+Text generated: hiked but a bear hiked . a reluctant person goes ( for the lawyer ) . the busy bunny ran ( but a short judge went ( while the engaged koala runs ( while the businesswoman walked ( but a dog walked ( but the koala wal
+----
+STEP 1400
+Val log-loss bits: 0.6074
+Val acc: 0.8394
+Text generated: ny hiked . a nice dog walked ( but the synthetic cat runs but a engineer goes on the engineer ) . the dog walked ( while a lawyer runs ( but the bunny goes impatiently ) briefly quickly briefly . the spectacular judg
+----
+STEP 1450
+Val log-loss bits: 0.6094
+Val acc: 0.8369
+Text generated: tic man walked . the man goes ( on a engineer ) . a dog walked to a busy mouse . a mouse went at a nice businessman . a lawyer went ( but a spectacular cat hiked ( for a systematic businessman ) ) . the engaged busin
+----
+STEP 1500
+Val log-loss bits: 0.6098
+Val acc: 0.8372
+Text generated:  reluctant businesswoman went . the businesswoman runs for the person . the businesswoman walks ( but the reluctant mouse runs while a woman runs ( to a person ) . a short teacher hiked ( with the gorgeous man ) . a 
+----
+STEP 1550
+Val log-loss bits: 0.6106
+Val acc: 0.8364
+Text generated:  ( for the woman ) . a dog walks ( on the dog . a busy judge went ( on a bear ) . a bunny runs ( to a reluctant koala ) . the busy businessman runs . a lawyer goes . a teacher went ( for the bear ) . a bunny walked b
+----
+STEP 1600
+Val log-loss bits: 0.6192
+Val acc: 0.8324
+Text generated: while a engineer hiked ( to a person ) ) quickly impatiently quickly . a quick cat hiked . a busy bear ran on the synthetic mouse . the dog runs ( while a nice woman went but the person ran ( but a quick mouse went w
+----
+TRAINING FINISHED.
+Total steps run: 1600
+Best val bits: 0.5974 at step 850
+============================
